@@ -1,0 +1,714 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700&family=Montserrat:wght@700;800;900&display=swap');
+
+/* ==========================================================================
+   Design tokens
+   Palette follows the CNRC brand guidelines; Pantone references in comments.
+   ========================================================================== */
+:root {
+    /* Navy scale (Pantone 303 C base) */
+    --navy-blue: #022A3A;
+    --navy-dark: #011722;
+    --navy-abyss: #010F17;
+    --navy-input: #02121D;
+    --navy-surface: #033347;
+    --navy-card: rgba(2, 42, 58, 0.70);
+
+    /* Gold accent (Pantone 1235 C) */
+    --navy-gold: #E8B00F;
+    --navy-gold-hover: #F2C238;
+    --navy-gold-dim: rgba(232, 176, 15, 0.16);
+
+    /* Neutrals and secondary blue (Pantone 7690 C, 428 C) */
+    --navy-accent-blue: #0076A9;
+    --navy-gray: #C6CCD0;
+    --navy-white: #FFFEF9;
+
+    --border-subtle: rgba(198, 204, 208, 0.14);
+    --border-gold: rgba(232, 176, 15, 0.35);
+}
+
+/* Typography and global reset */
+html,
+body,
+[class*="css"] {
+    font-family: 'Roboto', sans-serif;
+    color: var(--navy-white);
+    -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Roboto Slab', serif !important;
+    font-weight: 700 !important;
+    color: var(--navy-white) !important;
+    letter-spacing: 0.01em;
+}
+
+/* Application background */
+.stApp {
+    background: radial-gradient(circle at 50% 0%, #033A50 0%, var(--navy-blue) 45%, var(--navy-dark) 100%);
+    min-height: 100vh;
+}
+
+/* Header and sidebar toggle */
+header[data-testid="stHeader"] {
+    background: transparent !important;
+    color: var(--navy-white) !important;
+    z-index: 999999 !important;
+}
+
+#MainMenu,
+footer {
+    visibility: hidden;
+}
+
+/* The toolbar must stay mounted; Streamlit renders stExpandSidebarButton inside it. */
+[data-testid="stToolbar"] {
+    background: transparent !important;
+}
+
+/* Hide the deploy button and toolbar action icons */
+.stDeployButton,
+[data-testid="stAppDeployButton"],
+[data-testid="stToolbarActions"] {
+    display: none !important;
+}
+
+/* Sidebar expand/collapse controls: always visible, pinned top-left when collapsed */
+[data-testid="stExpandSidebarButton"],
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="collapsedControl"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: fixed !important;
+    top: 12px !important;
+    left: 12px !important;
+    z-index: 1000000 !important;
+}
+
+[data-testid="stExpandSidebarButton"] button,
+[data-testid="stSidebarCollapsedControl"] button,
+[data-testid="collapsedControl"] button,
+[data-testid="stSidebarCollapseButton"] button {
+    display: flex !important;
+    visibility: visible !important;
+    background: #022A3A !important;
+    border: 1px solid var(--navy-gold) !important;
+    border-radius: 6px !important;
+    padding: 6px 10px !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-testid="stExpandSidebarButton"] button:hover,
+[data-testid="stSidebarCollapsedControl"] button:hover,
+[data-testid="collapsedControl"] button:hover,
+[data-testid="stSidebarCollapseButton"] button:hover {
+    background: #033A50 !important;
+    border-color: var(--navy-gold-hover) !important;
+}
+
+[data-testid="stExpandSidebarButton"] svg,
+[data-testid="stSidebarCollapsedControl"] svg,
+[data-testid="collapsedControl"] svg,
+[data-testid="stSidebarCollapseButton"] svg {
+    fill: var(--navy-gold) !important;
+    stroke: var(--navy-gold) !important;
+    color: var(--navy-gold) !important;
+}
+
+/* Sidebar layout and bottom-anchored footer */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, var(--navy-dark) 0%, var(--navy-abyss) 100%) !important;
+    border-right: 1px solid var(--border-subtle) !important;
+}
+
+[data-testid="stSidebarContent"] {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+[data-testid="stSidebarUserContent"] {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    height: 100% !important;
+}
+
+[data-testid="stSidebarUserContent"]>[data-testid="stVerticalBlock"],
+[data-testid="stSidebarUserContent"]>[data-testid="stVerticalBlockBorderWrapper"]>div>[data-testid="stVerticalBlock"] {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    height: 100% !important;
+}
+
+[data-testid="stSidebar"] * {
+    color: var(--navy-white);
+}
+
+.sidebar-brand {
+    text-align: center;
+    padding: 4px 0 6px;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 6px;
+}
+
+.sidebar-logo {
+    max-width: 115px;
+    height: auto;
+    margin: 0 auto 4px;
+    display: block;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+
+.sidebar-tagline {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.50rem !important;
+    font-weight: 800;
+    color: var(--navy-gold) !important;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+/* Sidebar section headers */
+.sidebar-section-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: var(--navy-gray) !important;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 8px auto 6px !important;
+    text-align: center !important;
+}
+
+/* Suggested inquiry buttons (secondary buttons in sidebar) */
+[data-testid="stSidebar"] .stButton>button:not([kind="primary"]):not([data-testid="baseButton-primary"]) {
+    background: rgba(2, 42, 58, 0.6) !important;
+    border: 1px solid var(--border-subtle) !important;
+    color: var(--navy-white) !important;
+    border-radius: 5px !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 0.74rem !important;
+    font-weight: 500 !important;
+    padding: 4px 8px !important;
+    margin-bottom: 2px !important;
+    transition: all 0.2s ease-in-out;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+[data-testid="stSidebar"] .stButton>button:not([kind="primary"]):not([data-testid="baseButton-primary"]):hover {
+    background: var(--navy-gold-dim) !important;
+    border-color: var(--navy-gold) !important;
+    color: var(--navy-gold) !important;
+    transform: translateX(2px);
+}
+
+/* Reset button (primary button in sidebar) */
+[data-testid="stSidebar"] button[kind="primary"],
+[data-testid="stSidebar"] [data-testid="baseButton-primary"] {
+    background: #022A3A !important;
+    border: 1px solid var(--navy-gold) !important;
+    color: var(--navy-gold) !important;
+    border-radius: 6px !important;
+    justify-content: center !important;
+    text-align: center !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 0.68rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    padding: 7px 10px !important;
+    margin-top: 10px !important;
+    margin-bottom: 6px !important;
+    width: 100% !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4), 0 0 8px rgba(232, 176, 15, 0.15) !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+[data-testid="stSidebar"] button[kind="primary"]:hover,
+[data-testid="stSidebar"] [data-testid="baseButton-primary"]:hover {
+    background: var(--navy-gold-dim) !important;
+    border-color: var(--navy-gold) !important;
+    color: var(--navy-gold-hover) !important;
+    transform: translateX(2px) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-testid="stSidebar"] button[kind="primary"] p,
+[data-testid="stSidebar"] [data-testid="baseButton-primary"] p {
+    color: inherit !important;
+    font-weight: inherit !important;
+    font-size: inherit !important;
+    letter-spacing: inherit !important;
+    text-transform: inherit !important;
+    text-align: center !important;
+    margin: 0 !important;
+}
+
+/* Sidebar footer: disclaimer and system specifications */
+[data-testid="stSidebarContent"] {
+    position: relative !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 120px !important;
+}
+
+[data-testid="stSidebar"] [data-testid="stElementContainer"]:has(.sidebar-footer-anchor),
+[data-testid="stSidebar"] div.element-container:has(.sidebar-footer-anchor) {
+    position: absolute !important;
+    bottom: 12px !important;
+    left: 14px !important;
+    right: 14px !important;
+    width: calc(100% - 28px) !important;
+    z-index: 99 !important;
+}
+
+.sidebar-footer-anchor {
+    width: 100%;
+}
+
+.brand-disclaimer {
+    font-size: 0.70rem !important;
+    color: #D5DCE2 !important;
+    font-weight: 400 !important;
+    line-height: 1.35 !important;
+    margin: 8px auto 0 !important;
+    padding-bottom: 6px !important;
+    text-align: center !important;
+    display: block !important;
+    opacity: 0.95 !important;
+    letter-spacing: 0.02em !important;
+}
+
+/* System specifications card */
+.system-specs-card {
+    background: rgba(1, 15, 23, 0.65);
+    border: 1px solid rgba(198, 204, 208, 0.12);
+    border-radius: 5px;
+    padding: 5px 8px;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.specs-header {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: var(--navy-gray);
+    margin-bottom: 3px;
+    text-transform: uppercase;
+}
+
+.specs-indicator {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: #00E676;
+    display: inline-block;
+    position: relative;
+    box-shadow: 0 0 5px #00E676;
+    animation: radar-core-blink 1.2s infinite ease-out;
+}
+
+.specs-indicator::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    border: 1.2px solid #00FF66;
+    box-sizing: border-box;
+    transform: translate(-50%, -50%) scale(1);
+    animation: radar-ping-sweep 1.2s infinite ease-out;
+    pointer-events: none;
+}
+
+@keyframes radar-core-blink {
+    0% {
+        opacity: 1;
+        box-shadow: 0 0 6px #00FF66, 0 0 2px #FFFFFF;
+        filter: brightness(1.25);
+    }
+
+    15% {
+        opacity: 0.85;
+        box-shadow: 0 0 5px #00E676;
+        filter: brightness(1.1);
+    }
+
+    35% {
+        opacity: 0.35;
+        box-shadow: 0 0 2px #00E676;
+        filter: brightness(1);
+    }
+
+    85% {
+        opacity: 0.35;
+        box-shadow: 0 0 2px #00E676;
+    }
+
+    100% {
+        opacity: 1;
+        box-shadow: 0 0 6px #00FF66, 0 0 2px #FFFFFF;
+        filter: brightness(1.25);
+    }
+}
+
+@keyframes radar-ping-sweep {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+        box-shadow: 0 0 4px #00FF66;
+    }
+
+    40% {
+        transform: translate(-50%, -50%) scale(2.4);
+        opacity: 0;
+        box-shadow: 0 0 6px rgba(0, 255, 102, 0);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(2.4);
+        opacity: 0;
+    }
+}
+
+.specs-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.62rem;
+    line-height: 1.35;
+    color: var(--navy-gray);
+}
+
+.specs-label {
+    color: #8A9CA8;
+    font-weight: 500;
+}
+
+.specs-val {
+    font-family: 'Roboto', monospace;
+    color: var(--navy-white);
+    font-weight: 400;
+}
+
+/* Main container and compact header */
+.main .block-container {
+    box-sizing: border-box !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 2rem !important;
+    /* Content plus the sticky input bar (~7rem) fills the viewport, leaving no spare scroll range */
+    min-height: calc(100vh - 7rem) !important;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.header-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0.2rem !important;
+}
+
+.header-brand-logo {
+    max-width: 500px !important;
+    width: min(500px, 90vw) !important;
+    height: auto !important;
+    margin: 0 auto 6px !important;
+    padding-bottom: 12px !important;
+    display: block !important;
+}
+
+.header-subtitle {
+    font-family: 'Roboto Slab', serif;
+    font-size: 0.90rem;
+    color: var(--navy-gray);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 4px 0 !important;
+}
+
+/* Brand chevron divider */
+.navy-chevron-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 320px;
+    margin: 2px auto 0;
+    gap: 8px;
+}
+
+.chevron-stripes {
+    display: flex;
+    gap: 3px;
+}
+
+.chevron-stripe {
+    width: 3px;
+    height: 8px;
+    background-color: var(--navy-gold);
+    transform: skewX(-25deg);
+}
+
+.chevron-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--navy-gold), rgba(232, 176, 15, 0.15));
+}
+
+.chevron-line-left {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(270deg, var(--navy-gold), rgba(232, 176, 15, 0.15));
+}
+
+.header-eagle-pin {
+    width: 30px !important;
+    max-width: 30px !important;
+    height: auto !important;
+    display: block !important;
+    margin: 0 !important;
+    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.5));
+}
+
+/* Welcome (empty) state */
+.briefing-card {
+    background: rgba(2, 42, 58, 0.45);
+    border: 1px solid var(--border-gold);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 12px 0 16px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+}
+
+.briefing-title {
+    font-family: 'Roboto Slab', serif;
+    font-size: 1.0rem;
+    font-weight: 700;
+    color: var(--navy-gold) !important;
+    margin: 0 0 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.briefing-desc {
+    font-size: 0.84rem;
+    color: var(--navy-white);
+    line-height: 1.45;
+    margin-bottom: 0;
+}
+
+/* Button disabled state */
+.main .stButton>button:disabled,
+[data-testid="stSidebar"] .stButton>button:disabled {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: rgba(198, 204, 208, 0.14) !important;
+}
+
+/* Retained for markup compatibility. Controls are locked by the spinner rule
+   below so the sidebar toggle remains operable during generation. */
+.click-shield {
+    display: none !important;
+}
+
+/* Disable interactive elements while a request is in flight (sidebar toggle exempt) */
+.stApp:has([data-testid="stSpinner"]) button:not([data-testid="stSidebarCollapseButton"] button):not([data-testid="stSidebarCollapseButton"]):not([data-testid="stExpandSidebarButton"]):not([data-testid="stSidebarCollapsedControl"] button),
+.stApp:has([data-testid="stSpinner"]) [data-testid="stChatInput"] {
+    pointer-events: none !important;
+    cursor: wait !important;
+    opacity: 0.45 !important;
+}
+
+/* Chat messages */
+[data-testid="stChatMessage"] {
+    background: rgba(2, 42, 58, 0.55) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 10px !important;
+    backdrop-filter: blur(16px) !important;
+    margin-bottom: 12px !important;
+    padding: 14px 18px !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* User message styling */
+[data-testid="stChatMessage"][data-testid*="user"] {
+    background: rgba(3, 51, 71, 0.65) !important;
+    border-left: 3px solid var(--navy-gold) !important;
+    border-color: rgba(232, 176, 15, 0.3) !important;
+}
+
+[data-testid="stChatMessage"] p,
+[data-testid="stChatMessage"] li,
+[data-testid="stChatMessage"] span {
+    color: var(--navy-white) !important;
+    font-size: 0.90rem;
+    line-height: 1.6;
+}
+
+/* Chat input: themed to match the palette.
+   Uses position: sticky so the bar remains bounded by stMain and does not
+   overlap the sidebar (position: fixed spans the full window). */
+[data-testid="stBottom"] {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 100 !important;
+}
+
+[data-testid="stBottom"],
+[data-testid="stBottom"]>div {
+    background: rgba(1, 15, 23, 0.95) !important;
+    backdrop-filter: blur(14px) !important;
+    border-top: 1px solid rgba(198, 204, 208, 0.15) !important;
+}
+
+[data-testid="stChatInput"],
+[data-testid="stChatInput"]>div,
+[data-testid="stChatInputContainer"],
+[data-testid="stChatInputContainer"]>div,
+[data-testid="stChatInputContainer"]>div>div,
+[data-baseweb="base-input"],
+[data-baseweb="textarea"],
+div[class*="stChatInput"] {
+    background-color: var(--navy-input) !important;
+    background: var(--navy-input) !important;
+    border-color: rgba(198, 204, 208, 0.20) !important;
+    border-radius: 8px !important;
+}
+
+[data-testid="stChatInput"]:focus-within,
+[data-testid="stChatInputContainer"]:focus-within,
+[data-baseweb="base-input"]:focus-within {
+    border-color: var(--navy-gold) !important;
+    box-shadow: 0 0 12px rgba(232, 176, 15, 0.25) !important;
+}
+
+[data-testid="stChatInput"] textarea,
+[data-testid="stChatInputContainer"] textarea {
+    color: var(--navy-white) !important;
+    background: transparent !important;
+    caret-color: var(--navy-gold) !important;
+    font-size: 0.90rem !important;
+}
+
+[data-testid="stChatInput"] textarea::placeholder,
+[data-testid="stChatInputContainer"] textarea::placeholder {
+    color: #7A8E9E !important;
+}
+
+[data-testid="stChatInput"] button,
+[data-testid="stChatInputContainer"] button {
+    background: var(--navy-gold) !important;
+    color: var(--navy-dark) !important;
+    border-radius: 5px !important;
+}
+
+/* Scope footer and citations */
+.scope-footer {
+    margin-top: 12px;
+    padding-top: 8px;
+    padding-bottom: 4px;
+    border-top: 1px solid rgba(198, 204, 208, 0.12);
+}
+
+.scope-footer .scope-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.scope-footer.grounded .scope-text {
+    color: #81C784 !important;
+}
+
+.scope-footer.general .scope-text {
+    color: var(--navy-gold) !important;
+}
+
+.scope-footer.refused .scope-text {
+    color: #E57373 !important;
+}
+
+.scope-text {
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 0.64rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.14em !important;
+    text-transform: uppercase !important;
+}
+
+.sources-text-list {
+    margin: 4px 0 0 14px !important;
+    padding-bottom: 8px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+}
+
+.source-text-item {
+    font-size: 0.78rem !important;
+    line-height: 1.4 !important;
+    color: var(--navy-white) !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+.source-name {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 500 !important;
+    color: #E2E8F0 !important;
+}
+
+.source-pages {
+    color: var(--navy-gray) !important;
+    font-weight: 400 !important;
+    font-size: 0.75rem !important;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--navy-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--navy-surface);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--navy-gold);
+}

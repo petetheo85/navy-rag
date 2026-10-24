@@ -22,8 +22,9 @@ dependencies = [
     "chromadb>=0.5.0",
     "langchain-chroma>=0.1.0",
 
-    # PDF parsing
+    # PDF parsing & rendering
     "pypdf>=4.0.0",
+    "pypdfium2>=4.30.0",
 
     # Embeddings (sentence-transformers for local reranking)
     "sentence-transformers>=3.0.0",

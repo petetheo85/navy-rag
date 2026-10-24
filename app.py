@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import base64
 import html
+import re
 import sys
 from pathlib import Path
 
@@ -16,6 +17,12 @@ import streamlit as st
 
 from navy_rag.chain.graph import run_graph
 from navy_rag.config import settings
+from navy_rag.ingestion.pdf_slicer import (
+    extract_pdf_pages,
+    get_document_metadata,
+    get_page_text,
+    render_pdf_page_image,
+)
 
 # Page configuration (must be the first Streamlit command)
 st.set_page_config(
@@ -185,32 +192,45 @@ st.markdown(
 
 # Source citation consolidation and rendering
 def consolidate_sources(sources: list[dict]) -> list[dict]:
-    """Group citations by document and consolidate page numbers (e.g., pp. 5, 12)."""
+    """Group citations by document and consolidate page numbers, titles, and excerpts."""
     grouped: dict[str, dict] = {}
     for src in sources:
         doc_name = (src.get("source") or "").strip()
         filename = (src.get("filename") or "").strip()
+        title = (src.get("title") or "").strip()
         key = filename or doc_name or "document"
         display_name = doc_name or filename or "Navy Instruction"
 
         if key not in grouped:
             grouped[key] = {
                 "name": display_name,
+                "filename": filename,
+                "title": title or display_name,
                 "pages": set(),
+                "excerpts": {},
             }
         elif doc_name and grouped[key]["name"] == filename:
             grouped[key]["name"] = doc_name
 
         page = src.get("page")
+        excerpt = src.get("excerpt", "")
         if page is not None:
             try:
                 p_num = int(page)
                 if p_num > 0:
                     grouped[key]["pages"].add(p_num)
+                    if excerpt:
+                        existing = grouped[key]["excerpts"].get(p_num, "")
+                        if excerpt not in existing:
+                            grouped[key]["excerpts"][p_num] = (
+                                f"{existing}\n\n...\n\n{excerpt}" if existing else excerpt
+                            )
             except (ValueError, TypeError):
                 p_str = str(page).strip()
                 if p_str:
                     grouped[key]["pages"].add(p_str)
+                    if excerpt:
+                        grouped[key]["excerpts"][p_str] = excerpt
 
     consolidated = []
     for item in grouped.values():
@@ -229,14 +249,112 @@ def consolidate_sources(sources: list[dict]) -> list[dict]:
         consolidated.append(
             {
                 "name": item["name"],
+                "filename": item["filename"],
+                "title": item["title"],
+                "pages": int_pages,
                 "page_text": page_text,
+                "excerpts": item["excerpts"],
             }
         )
     return consolidated
 
 
-def render_footer(scope: str, sources: list[dict]) -> None:
-    """Render the verification scope indicator and cited policy sources."""
+@st.dialog("Official Policy Reference", width="large")
+def show_policy_dialog(item: dict) -> None:
+    """Display grounded official document page and text excerpt for a citation."""
+    filename = item.get("filename", "")
+    pages = [p for p in item.get("pages", []) if isinstance(p, int) and p > 0]
+    excerpts = item.get("excerpts", {})
+
+    manifest_meta = get_document_metadata(filename)
+    title = manifest_meta.get("title") or item.get("title") or item.get("name") or "Navy Instruction"
+    instruction_num = manifest_meta.get("instruction_number") or item.get("name") or ""
+
+    # Avoid duplicating instruction number if title and instruction are identical
+    has_distinct_instruction = (
+        instruction_num
+        and instruction_num.strip().lower() != title.strip().lower()
+    )
+
+    instruction_html = (
+        f'<div class="dialog-doc-instruction">{html.escape(instruction_num)}</div>'
+        if has_distinct_instruction
+        else ""
+    )
+
+    page_summary = (
+        f"Page {pages[0]}"
+        if len(pages) == 1
+        else f"Pages {', '.join(str(p) for p in pages)}"
+    ) if pages else ""
+
+    badge_html = f'<div class="dialog-page-badge">{html.escape(page_summary)}</div>' if page_summary else ""
+
+    st.markdown(
+        f"""
+        <div class="dialog-header-card">
+            <div class="dialog-header-top">
+                <div class="dialog-doc-title">⚓ {html.escape(title)}</div>
+                {badge_html}
+            </div>
+            {instruction_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if not pages:
+        st.warning("No specific page numbers available for this reference.")
+        return
+
+    # If multiple pages are cited, provide a page selector
+    if len(pages) > 1:
+        selected_page = st.radio(
+            "Select cited page to inspect:",
+            pages,
+            horizontal=True,
+            format_func=lambda p: f"Page {p}",
+            key=f"modal_page_select_{filename}",
+        )
+    else:
+        selected_page = pages[0]
+
+    tab_doc, tab_text = st.tabs(["📑 Official Document Page", "📄 Text Excerpt"])
+
+    with tab_doc:
+        page_img = render_pdf_page_image(filename, selected_page, scale=2.0)
+        if page_img:
+            st.image(page_img, use_container_width=True)
+            pdf_slice_bytes = extract_pdf_pages(filename, [selected_page])
+            if pdf_slice_bytes:
+                stem = Path(filename).stem
+                st.download_button(
+                    label=f"⬇ Download Page {selected_page} (PDF)",
+                    data=pdf_slice_bytes,
+                    file_name=f"{stem}_page_{selected_page}.pdf",
+                    mime="application/pdf",
+                    key=f"dl_{filename}_{selected_page}",
+                    use_container_width=True,
+                )
+        else:
+            st.warning(f"Could not render image for page {selected_page} of {filename}.")
+
+    with tab_text:
+        raw_text = excerpts.get(selected_page) or get_page_text(filename, selected_page)
+        if raw_text:
+            clean_text = re.sub(r"\n{3,}", "\n\n", raw_text).strip()
+            # Replace newlines with <br> so Markdown does not parse 4-space indentations as code blocks
+            html_content = html.escape(clean_text).replace("\n", "<br>")
+            st.markdown(
+                f'<div class="policy-excerpt-card">{html_content}</div>',
+                unsafe_allow_html=True,
+            )
+        else:
+            st.info(f"No text excerpt available for page {selected_page}.")
+
+
+def render_footer(scope: str, sources: list[dict], msg_idx: int = 0) -> None:
+    """Render the verification scope indicator and cited policy sources with reference link."""
     # If no sources supported the answer, treat as referred
     if scope == "in_scope_with_docs" and not sources:
         scope = "referred"
@@ -252,36 +370,34 @@ def render_footer(scope: str, sources: list[dict]) -> None:
 
     cls, text = labels[scope]
 
-    sources_html = ""
-    if scope == "in_scope_with_docs" and sources:
-        consolidated = consolidate_sources(sources)
-        if consolidated:
-            items_html = ""
-            for item in consolidated:
-                page_part = (
-                    f'<span class="source-pages">&nbsp;·&nbsp;{item["page_text"]}</span>'
-                    if item["page_text"]
-                    else ""
-                )
-                items_html += (
-                    f'<div class="source-text-item">'
-                    f'<span class="source-name">{html.escape(item["name"])}</span>'
-                    f"{page_part}"
-                    f"</div>"
-                )
-            sources_html = f'<div class="sources-text-list">{items_html}</div>'
-
     st.markdown(
         f"""
         <div class="scope-footer {cls}">
             <div class="scope-meta">
                 <span class="scope-text">{text}</span>
             </div>
-            {sources_html}
         </div>
         """,
         unsafe_allow_html=True,
     )
+
+    if scope == "in_scope_with_docs" and sources:
+        consolidated = consolidate_sources(sources)
+        for idx, item in enumerate(consolidated):
+            page_part = f"&nbsp;·&nbsp;{item['page_text']}" if item["page_text"] else ""
+            col_text, col_btn = st.columns([0.76, 0.24])
+            with col_text:
+                st.markdown(
+                    f'<div class="source-text-item">'
+                    f'<span class="source-name">{html.escape(item["name"])}</span>'
+                    f'<span class="source-pages">{page_part}</span>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+            with col_btn:
+                btn_key = f"cite_ref_{msg_idx}_{idx}_{item['filename']}"
+                if st.button("View Reference ↗", key=btn_key, type="tertiary"):
+                    show_policy_dialog(item)
 
 
 # User input processing
@@ -334,12 +450,12 @@ completed_messages = (
     else st.session_state.messages
 )
 
-for msg in completed_messages:
+for msg_idx, msg in enumerate(completed_messages):
     avatar = assistant_avatar if msg["role"] == "assistant" else user_avatar
     with st.chat_message(msg["role"], avatar=avatar):
         st.markdown(msg["content"])
         if msg["role"] == "assistant":
-            render_footer(msg.get("scope", ""), msg.get("sources", []))
+            render_footer(msg.get("scope", ""), msg.get("sources", []), msg_idx=msg_idx)
 
 # Active turn execution
 if st.session_state.messages and st.session_state.messages[-1].get("role") == "user":
@@ -377,7 +493,7 @@ if st.session_state.messages and st.session_state.messages[-1].get("role") == "u
                 st.session_state.is_generating = False
 
         st.markdown(answer)
-        render_footer(scope, sources)
+        render_footer(scope, sources, msg_idx=len(st.session_state.messages))
 
     st.session_state.messages.append(
         {

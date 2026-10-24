@@ -681,6 +681,8 @@ div[class*="stChatInput"] {
     background: transparent !important;
     border: none !important;
     padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
 }
 
 .source-name {
@@ -693,6 +695,103 @@ div[class*="stChatInput"] {
     color: var(--navy-gray) !important;
     font-weight: 400 !important;
     font-size: 0.75rem !important;
+}
+
+/* Citation inline reference button */
+[data-testid="stChatMessage"] button[data-testid="baseButton-tertiary"],
+[data-testid="stChatMessage"] button[kind="tertiary"] {
+    color: var(--navy-gold) !important;
+    font-size: 0.72rem !important;
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 500 !important;
+    padding: 0 4px !important;
+    min-height: 1.4rem !important;
+    height: 1.4rem !important;
+    line-height: 1.4rem !important;
+    text-decoration: underline !important;
+    text-underline-offset: 2px !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    transition: color 0.15s ease-in-out !important;
+}
+
+[data-testid="stChatMessage"] button[data-testid="baseButton-tertiary"]:hover,
+[data-testid="stChatMessage"] button[kind="tertiary"]:hover {
+    color: var(--navy-gold-hover) !important;
+    background: rgba(232, 176, 15, 0.08) !important;
+}
+
+/* Policy Inspection Dialog */
+[data-testid="stDialog"] [role="dialog"],
+div[data-testid="stDialog"]>div {
+    background: linear-gradient(180deg, var(--navy-blue) 0%, var(--navy-dark) 100%) !important;
+    border: 1px solid var(--border-gold) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6) !important;
+    color: var(--navy-white) !important;
+}
+
+.dialog-header-card {
+    background: rgba(1, 15, 23, 0.75);
+    border: 1px solid var(--border-subtle);
+    border-left: 3px solid var(--navy-gold);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+}
+
+.dialog-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.dialog-doc-title {
+    font-family: 'Roboto Slab', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--navy-gold) !important;
+    margin: 0;
+}
+
+.dialog-doc-instruction {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--navy-gray) !important;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+
+.dialog-page-badge {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--navy-white);
+    background: rgba(2, 42, 58, 0.95);
+    border: 1px solid var(--border-gold);
+    border-radius: 4px;
+    display: inline-block;
+    padding: 3px 8px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.policy-excerpt-card {
+    background: rgba(2, 42, 58, 0.55);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 14px 18px;
+    font-size: 0.86rem;
+    line-height: 1.6;
+    color: var(--navy-white);
+    max-height: 480px;
+    overflow-y: auto;
+    margin-bottom: 12px;
 }
 
 /* Scrollbars */

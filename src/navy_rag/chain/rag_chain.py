@@ -115,23 +115,28 @@ def invoke_rag(
         }
     )
 
-    sources = [
-        {
-            "source": d.metadata.get("instruction_number") or d.metadata.get("source"),
-            "filename": d.metadata.get("filename"),
-            "page": d.metadata.get("page"),
-        }
-        for d in retrieved_docs
-    ]
+    seen: dict[tuple[str | None, int | None], dict] = {}
+    for d in retrieved_docs:
+        meta = d.metadata
+        filename = meta.get("filename")
+        page = meta.get("page")
+        key = (filename, page)
+        excerpt = d.page_content.strip()
 
-    seen: set[tuple[str | None, int | None]] = set()
-    unique_sources: list[dict] = []
-    for s in sources:
-        key = (s["filename"], s["page"])
         if key not in seen:
-            seen.add(key)
-            unique_sources.append(s)
+            seen[key] = {
+                "source": meta.get("instruction_number") or meta.get("source"),
+                "filename": filename,
+                "page": page,
+                "title": meta.get("source") or meta.get("title") or "",
+                "excerpt": excerpt,
+            }
+        else:
+            existing = seen[key].get("excerpt", "")
+            if excerpt and excerpt not in existing:
+                seen[key]["excerpt"] = f"{existing}\n\n...\n\n{excerpt}"
 
+    unique_sources = list(seen.values())
     clean_answer, filtered_sources = _filter_sources_and_clean_answer(answer, unique_sources)
     return {
         "answer": clean_answer,

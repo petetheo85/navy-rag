@@ -6,13 +6,13 @@ import argparse
 import logging
 import sys
 
-from navy_rag.cli import ingest
+from navy_rag.cli import download, ingest
 from navy_rag.config import settings
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="navy",
+        prog="navy-rag",
         description="Command-line interface for the Navy RAG pipeline.",
     )
     parser.add_argument(
@@ -23,6 +23,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
+    download.register_subcommand(subparsers)
     ingest.register_subcommand(subparsers)
 
     return parser

@@ -1,0 +1,40 @@
+# Declarative Bronze-layer corpus manifest for authoritative Navy and DoD policy documents.
+# Managed by navy_rag.ingestion.downloader.
+schema_version: "1.0"
+
+documents:
+  - doc_id: "comnavcruitcominst_1130_8"
+    instruction_number: "COMNAVCRUITCOMINST 1130.8"
+    title: "Navy Recruiting Manual - Enlisted"
+    source_agency: "CNRC / Navy Band Directives"
+    url: "https://www.navyband.navy.mil/documents/comnavcruitcominst-11308k.pdf"
+    filename: "comnavcruitcominst-1130-8.pdf"
+    audience: "public"
+    sha256: null
+
+  - doc_id: "cnrc_orlmm"
+    instruction_number: "CNRC ORLMM"
+    title: "Navy Officer Recruiting Leadership and Management Manual (ORLMM)"
+    source_agency: "CNRC eToolbox"
+    url: "https://etoolbox.cnrc.navy.mil/assets/N7B/instructions/Navy%20Officer%20Recruiting%20Leadership%20and%20Management%20Manual%20(ORLMM).pdf"
+    filename: "cnrc-orlmm.pdf"
+    audience: "public"
+    sha256: null
+
+  - doc_id: "milpersman_1133_020"
+    instruction_number: "MILPERSMAN 1133-020"
+    title: "MILPERSMAN 1133-020 - Enlistment and Accession Programs Policy"
+    source_agency: "MyNavyHR"
+    url: "https://www.mynavyhr.navy.mil/Portals/55/Reference/MILPERSMAN/1000/1100Recruiting/1133-020.pdf"
+    filename: "milpersman-1133-020.pdf"
+    audience: "public"
+    sha256: null
+
+  - doc_id: "dodi_1304_26"
+    instruction_number: "DoDI 1304.26"
+    title: "Qualification Standards for Enlistment, Appointment, and Induction"
+    source_agency: "DoD ESD WHS"
+    url: "https://www.esd.whs.mil/Portals/54/Documents/DD/issuances/dodi/130426p.pdf"
+    filename: "dodi-1304-26.pdf"
+    audience: "public"
+    sha256: null

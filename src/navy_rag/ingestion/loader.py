@@ -5,7 +5,10 @@ from __future__ import annotations
 import logging
 import re
 from datetime import UTC, datetime
+from functools import lru_cache
 from pathlib import Path
+
+import yaml
 
 # TODO: migrate to langchain-pypdf once langchain-community splits
 from langchain_community.document_loaders import PyPDFLoader
@@ -22,6 +25,32 @@ _INSTRUCTION_RE = re.compile(
     r"DODI|DODD|JAGINST|BUMEDINST|NAVPERS)\s*[\d\-\.]+[A-Z]?\b",
     re.IGNORECASE,
 )
+
+
+@lru_cache(maxsize=1)
+def _load_manifest_metadata() -> dict[str, dict[str, str]]:
+    manifest_path = settings.manifest_path
+    if not manifest_path.is_file():
+        return {}
+
+    try:
+        with manifest_path.open("r", encoding="utf-8") as fh:
+            raw = yaml.safe_load(fh) or {}
+        docs = raw.get("documents", [])
+        return {
+            doc["filename"]: {
+                "title": doc.get("title", ""),
+                "instruction_number": doc.get("instruction_number", ""),
+                "source_agency": doc.get("source_agency", ""),
+                "audience": doc.get("audience", "public"),
+                "doc_id": doc.get("doc_id", ""),
+            }
+            for doc in docs
+            if "filename" in doc
+        }
+    except Exception as exc:
+        logger.debug("Failed reading manifest metadata from %s: %s", manifest_path, exc)
+        return {}
 
 
 def _extract_instruction_number(text: str) -> str | None:
@@ -42,10 +71,12 @@ def _pdf_title(path: Path) -> str | None:
 
 def _audience_from_path(path: Path) -> str:
     folder = path.parent.name
+    if folder == "raw":
+        return "public"
     if folder not in settings.allowed_audiences:
         raise ValueError(
             f"'{path}' is in an unrecognized folder '{folder}'. "
-            f"Move it to one of: {settings.allowed_audiences}"
+            f"Move it to one of: {settings.allowed_audiences} or raw"
         )
     return folder
 
@@ -54,8 +85,10 @@ def load_pdf(path: Path) -> list[Document]:
     """Parse a single PDF into 1-indexed page Documents with source metadata."""
     logger.info("Loading %s", path.name)
 
-    audience = _audience_from_path(path)
-    title = _pdf_title(path) or path.stem
+    manifest_meta = _load_manifest_metadata().get(path.name, {})
+
+    audience = manifest_meta.get("audience") or _audience_from_path(path)
+    title = manifest_meta.get("title") or _pdf_title(path) or path.stem
 
     loader = PyPDFLoader(str(path))
     pages = loader.load()
@@ -65,14 +98,20 @@ def load_pdf(path: Path) -> list[Document]:
         return []
 
     first_page_text = pages[0].page_content if pages else ""
-    instruction_number = _extract_instruction_number(first_page_text)
+    instruction_number = (
+        manifest_meta.get("instruction_number")
+        or _extract_instruction_number(first_page_text)
+        or ""
+    )
 
     base_metadata = {
         "audience": audience,
         "source": title,
         "filename": path.name,
         "filepath": str(path.relative_to(settings.base_dir)),
-        "instruction_number": instruction_number or "",
+        "instruction_number": instruction_number,
+        "source_agency": manifest_meta.get("source_agency", ""),
+        "doc_id": manifest_meta.get("doc_id", ""),
         "ingested_at": datetime.now(UTC).isoformat(),
     }
 
@@ -89,17 +128,30 @@ def load_pdf(path: Path) -> list[Document]:
 
 
 def discover_pdfs(data_dir: Path | None = None) -> list[Path]:
-    """Collect PDF paths across all configured audience directories."""
+    """Collect PDF paths across raw Bronze storage and audience directories."""
     root = data_dir or settings.data_dir
     found: list[Path] = []
+    seen_names: set[str] = set()
+
+    raw_dir = root / "raw"
+    if raw_dir.exists():
+        raw_pdfs = sorted(raw_dir.glob("*.pdf"))
+        logger.info("Discovered %d PDF(s) in raw/", len(raw_pdfs))
+        for p in raw_pdfs:
+            found.append(p)
+            seen_names.add(p.name)
 
     for audience in settings.allowed_audiences:
         audience_dir = root / audience
         if not audience_dir.exists():
             continue
         pdfs = sorted(audience_dir.glob("*.pdf"))
-        logger.info("Discovered %d PDF(s) in %s/", len(pdfs), audience)
-        found.extend(pdfs)
+        new_pdfs = [p for p in pdfs if p.name not in seen_names]
+        if new_pdfs:
+            logger.info("Discovered %d PDF(s) in %s/", len(new_pdfs), audience)
+            for p in new_pdfs:
+                found.append(p)
+                seen_names.add(p.name)
 
     return found
 

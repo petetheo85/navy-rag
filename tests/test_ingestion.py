@@ -37,6 +37,12 @@ class TestAudienceFromPath:
             mock_settings.allowed_audiences = ["public", "internal"]
             assert _audience_from_path(pdf) == "public"
 
+    def test_raw_folder(self, tmp_path):
+        pdf = tmp_path / "raw" / "test.pdf"
+        pdf.parent.mkdir()
+        pdf.touch()
+        assert _audience_from_path(pdf) == "public"
+
     def test_unknown_folder_raises(self, tmp_path):
         pdf = tmp_path / "classified" / "test.pdf"
         pdf.parent.mkdir()
@@ -88,6 +94,21 @@ class TestDiscoverPdfs:
         (pub / "doc1.pdf").touch()
         (pub / "doc2.pdf").touch()
         (pub / "not_a_pdf.txt").touch()
+
+        with patch("navy_rag.ingestion.loader.settings") as mock_settings:
+            mock_settings.allowed_audiences = ["public"]
+            mock_settings.data_dir = tmp_path
+            pdfs = discover_pdfs(tmp_path)
+
+        assert len(pdfs) == 2
+        assert all(p.suffix == ".pdf" for p in pdfs)
+
+    def test_discovers_pdfs_in_raw(self, tmp_path):
+        raw = tmp_path / "raw"
+        raw.mkdir()
+        (raw / "instruction1.pdf").touch()
+        (raw / "instruction2.pdf").touch()
+        (raw / "notes.txt").touch()
 
         with patch("navy_rag.ingestion.loader.settings") as mock_settings:
             mock_settings.allowed_audiences = ["public"]

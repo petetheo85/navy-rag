@@ -29,6 +29,8 @@ logs/*.log
 # Data — actual PDFs are not committed; add your own locally
 data/public/*.pdf
 data/internal/*.pdf
+data/raw/*.pdf
+data/raw/_ingestion_manifest.json
 
 # Output / scratch
 output/

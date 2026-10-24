@@ -44,8 +44,10 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "pyyaml>=6.0.0",
 
-    # HTTP client & streaming
+    # HTTP client & cloud storage
     "httpx>=0.27.0",
+    "requests>=2.32.0",
+    "boto3>=1.35.0",
     "sse-starlette>=2.0.0",
 
     # Hybrid retrieval (BM25 keyword search)
@@ -69,7 +71,7 @@ dev = [
 ]
 
 [project.scripts]
-navy = "navy_rag.cli.main:main"
+navy-rag = "navy_rag.cli.main:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/navy_rag"]

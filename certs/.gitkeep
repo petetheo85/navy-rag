@@ -1,0 +1,2 @@
+# Place DoD PKI Root CA bundle here as dod_root_ca.pem when connecting to
+# endpoints signed exclusively by the DoD Root CA rather than public CAs.

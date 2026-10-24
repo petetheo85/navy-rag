@@ -41,6 +41,36 @@ class Settings(BaseSettings):
         p.mkdir(parents=True, exist_ok=True)
         return p
 
+    @computed_field
+    @property
+    def raw_data_dir(self) -> Path:
+        p = self.data_dir / "raw"
+        p.mkdir(parents=True, exist_ok=True)
+        return p
+
+    @computed_field
+    @property
+    def manifest_path(self) -> Path:
+        return self.data_dir / "manifests" / "corpus_manifest.yaml"
+
+    @computed_field
+    @property
+    def ingestion_manifest_path(self) -> Path:
+        return self.raw_data_dir / "_ingestion_manifest.json"
+
+    @computed_field
+    @property
+    def certs_dir(self) -> Path:
+        p = self.base_dir / "certs"
+        p.mkdir(parents=True, exist_ok=True)
+        return p
+
+    # Bronze layer & DoD PKI settings
+    dod_ca_bundle: Path | None = None
+    bronze_s3_bucket: str | None = None
+    bronze_s3_prefix: str = "bronze/raw"
+    download_timeout_seconds: int = Field(default=60, gt=0)
+
     # Provider API keys
     google_api_key: str | None = None
     openai_api_key: str | None = None

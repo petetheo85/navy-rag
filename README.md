@@ -88,14 +88,17 @@ Instruction PDFs are stored by audience classification in `data/public/` (applic
 Run the ingestion pipeline to parse, chunk, and embed documents into ChromaDB:
 
 ```bash
-# Standard local ingestion
-navy ingest
+# Bronze layer download from authoritative .mil policy manifest
+navy-rag download
+
+# Standard local ingestion into ChromaDB
+navy-rag ingest
 
 # Batch processing via PySpark for larger corpora
-navy ingest --spark --parallelism 4
+navy-rag ingest --spark --parallelism 4
 
 # Force re-indexing
-navy ingest --force
+navy-rag ingest --force
 ```
 
 ---
@@ -204,8 +207,9 @@ navy-rag/
 │   │   ├── rag_chain.py        # LCEL retrieval chain & streaming handlers
 │   │   └── graph.py            # LangGraph state machine & guardrail routing
 │   ├── cli/
-│   │   ├── main.py             # Unified CLI entry point (`navy`)
-│   │   └── ingest.py           # Document ingestion subcommand (`navy ingest`)
+│   │   ├── main.py             # Unified CLI entry point (`navy-rag`)
+│   │   ├── download.py         # Bronze download subcommand (`navy-rag download`)
+│   │   └── ingest.py           # Document ingestion subcommand (`navy-rag ingest`)
 │   ├── api/
 │   │   ├── main.py             # FastAPI application and route handlers
 │   │   └── models.py           # Pydantic request and response schemas

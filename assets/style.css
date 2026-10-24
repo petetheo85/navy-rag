@@ -781,19 +781,6 @@ div[data-testid="stDialog"]>div {
     white-space: nowrap;
 }
 
-.policy-excerpt-card {
-    background: rgba(2, 42, 58, 0.55);
-    border: 1px solid var(--border-subtle);
-    border-radius: 6px;
-    padding: 14px 18px;
-    font-size: 0.86rem;
-    line-height: 1.6;
-    color: var(--navy-white);
-    max-height: 480px;
-    overflow-y: auto;
-    margin-bottom: 12px;
-}
-
 /* Scrollbars */
 ::-webkit-scrollbar {
     width: 5px;

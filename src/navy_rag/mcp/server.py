@@ -17,8 +17,9 @@ mcp = FastMCP(
     name="Navy RAG",
     instructions=(
         "Demonstration intelligence and policy knowledge base for Navy recruiting. "
-        "Answers questions about enlistment eligibility, moral/medical waivers, physical fitness standards, "
-        "tattoo/appearance policies, ratings, ASVAB requirements, pay, and benefits using published Navy/DoD instructions. "
+        "Answers questions about enlistment eligibility, moral/medical waivers, "
+        "physical fitness standards, tattoo/appearance policies, ratings, ASVAB requirements, "
+        "pay, and benefits using published Navy/DoD instructions. "
         "Unofficial demonstration project; not affiliated with or endorsed by the U.S. Navy."
     ),
 )
@@ -81,7 +82,7 @@ def search_navy_instructions(
     audience: str = "public",
     chat_history: list[dict] | None = None,
 ) -> str:
-    """Query the Navy Recruiting Intelligence knowledge base and return a grounded response with citations."""
+    """Query the Navy knowledge base and return a grounded response with citations."""
     if audience not in settings.allowed_audiences:
         return f"Invalid audience '{audience}'. Valid choices: {settings.allowed_audiences}"
 
@@ -90,9 +91,12 @@ def search_navy_instructions(
         answer = result["answer"]
         scope = result.get("scope", "")
         sources = result.get("sources", [])
-    except Exception as exc:
+    except Exception:
         logger.exception("Inference failed for question: %s", question)
-        return "An error occurred while querying the Navy intelligence knowledge base. Please try again."
+        return (
+            "An error occurred while querying the Navy intelligence knowledge base. "
+            "Please try again."
+        )
 
     if scope == "in_scope_with_docs" and not sources:
         scope = "referred"

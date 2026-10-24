@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import base64
 import html
-import re
 import sys
 from pathlib import Path
 
@@ -20,7 +19,6 @@ from navy_rag.config import settings
 from navy_rag.ingestion.pdf_slicer import (
     extract_pdf_pages,
     get_document_metadata,
-    get_page_text,
     render_pdf_page_image,
 )
 
@@ -261,10 +259,9 @@ def consolidate_sources(sources: list[dict]) -> list[dict]:
 
 @st.dialog("Official Policy Reference", width="large")
 def show_policy_dialog(item: dict) -> None:
-    """Display grounded official document page and text excerpt for a citation."""
+    """Display grounded official document page for a citation."""
     filename = item.get("filename", "")
     pages = [p for p in item.get("pages", []) if isinstance(p, int) and p > 0]
-    excerpts = item.get("excerpts", {})
 
     manifest_meta = get_document_metadata(filename)
     title = manifest_meta.get("title") or item.get("title") or item.get("name") or "Navy Instruction"
@@ -319,38 +316,22 @@ def show_policy_dialog(item: dict) -> None:
     else:
         selected_page = pages[0]
 
-    tab_doc, tab_text = st.tabs(["📑 Official Document Page", "📄 Text Excerpt"])
-
-    with tab_doc:
-        page_img = render_pdf_page_image(filename, selected_page, scale=2.0)
-        if page_img:
-            st.image(page_img, use_container_width=True)
-            pdf_slice_bytes = extract_pdf_pages(filename, [selected_page])
-            if pdf_slice_bytes:
-                stem = Path(filename).stem
-                st.download_button(
-                    label=f"⬇ Download Page {selected_page} (PDF)",
-                    data=pdf_slice_bytes,
-                    file_name=f"{stem}_page_{selected_page}.pdf",
-                    mime="application/pdf",
-                    key=f"dl_{filename}_{selected_page}",
-                    use_container_width=True,
-                )
-        else:
-            st.warning(f"Could not render image for page {selected_page} of {filename}.")
-
-    with tab_text:
-        raw_text = excerpts.get(selected_page) or get_page_text(filename, selected_page)
-        if raw_text:
-            clean_text = re.sub(r"\n{3,}", "\n\n", raw_text).strip()
-            # Replace newlines with <br> so Markdown does not parse 4-space indentations as code blocks
-            html_content = html.escape(clean_text).replace("\n", "<br>")
-            st.markdown(
-                f'<div class="policy-excerpt-card">{html_content}</div>',
-                unsafe_allow_html=True,
+    page_img = render_pdf_page_image(filename, selected_page, scale=2.0)
+    if page_img:
+        st.image(page_img, use_container_width=True)
+        pdf_slice_bytes = extract_pdf_pages(filename, [selected_page])
+        if pdf_slice_bytes:
+            stem = Path(filename).stem
+            st.download_button(
+                label=f"⬇ Download Page {selected_page} (PDF)",
+                data=pdf_slice_bytes,
+                file_name=f"{stem}_page_{selected_page}.pdf",
+                mime="application/pdf",
+                key=f"dl_{filename}_{selected_page}",
+                use_container_width=True,
             )
-        else:
-            st.info(f"No text excerpt available for page {selected_page}.")
+    else:
+        st.warning(f"Could not render image for page {selected_page} of {filename}.")
 
 
 def render_footer(scope: str, sources: list[dict], msg_idx: int = 0) -> None:

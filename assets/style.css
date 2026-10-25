@@ -200,21 +200,30 @@ footer {
     font-family: 'Roboto', sans-serif !important;
     font-size: 0.74rem !important;
     font-weight: 500 !important;
-    padding: 4px 8px !important;
-    margin-bottom: 2px !important;
+    padding: 6px 10px !important;
+    margin-bottom: 3px !important;
     transition: all 0.2s ease-in-out;
-    width: 100%;
-    text-align: left;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
+    width: 100% !important;
+    text-align: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+[data-testid="stSidebar"] .stButton>button:not([kind="primary"]):not([data-testid="baseButton-primary"]) div[data-testid="stMarkdownContainer"],
+[data-testid="stSidebar"] .stButton>button:not([kind="primary"]):not([data-testid="baseButton-primary"]) p {
+    text-align: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    margin: 0 !important;
+    line-height: 1.35 !important;
 }
 
 [data-testid="stSidebar"] .stButton>button:not([kind="primary"]):not([data-testid="baseButton-primary"]):hover {
     background: var(--navy-gold-dim) !important;
     border-color: var(--navy-gold) !important;
     color: var(--navy-gold) !important;
-    transform: translateX(2px);
+    transform: translateY(-1px);
 }
 
 /* Reset button (primary button in sidebar) */

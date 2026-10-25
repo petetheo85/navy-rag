@@ -93,14 +93,15 @@ with st.sidebar:
 
     examples = [
         "What is the Navy's tattoo policy?",
-        "What medical conditions require a waiver?",
-        "Can I join the Navy with a misdemeanor?",
-        "What are the physical fitness standards?",
-        "What are the age limits to enlist?",
-        "Can someone with a GED enlist?",
+        "What medical conditions disqualify applicants at MEPS?",
+        "What are the PRT push-up and plank standards?",
+        "Can I join the Navy with a GED instead of a diploma?",
+        "Can someone enlist with a misdemeanor record?",
+        "What physical standards apply to SEAL and Diver programs?",
+        "What ASVAB scores are required for Cyber (CWT)?",
     ]
-    for q in examples:
-        if st.button(q, key=f"ex_{q[:15]}", use_container_width=True, disabled=is_busy):
+    for i, q in enumerate(examples):
+        if st.button(q, key=f"ex_{i}", use_container_width=True, disabled=is_busy):
             st.session_state.pending_question = q
 
     # Distinct Reset Briefing Button

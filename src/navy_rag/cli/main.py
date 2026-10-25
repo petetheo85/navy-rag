@@ -6,7 +6,7 @@ import argparse
 import logging
 import sys
 
-from navy_rag.cli import crawl_milpersman, download, ingest
+from navy_rag.cli import crawl_milpersman, crawl_uniforms, download, ingest
 from navy_rag.config import settings
 
 
@@ -26,6 +26,7 @@ def build_parser() -> argparse.ArgumentParser:
     download.register_subcommand(subparsers)
     ingest.register_subcommand(subparsers)
     crawl_milpersman.register_subcommand(subparsers)
+    crawl_uniforms.register_subcommand(subparsers)
 
     return parser
 

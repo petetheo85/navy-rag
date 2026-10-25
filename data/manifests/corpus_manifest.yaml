@@ -38,3 +38,66 @@ documents:
     filename: "dodi-1304-26.pdf"
     audience: "public"
     sha256: null
+
+  - doc_id: "dodi_6130_03_v1"
+    instruction_number: "DoDI 6130.03 Vol. 1"
+    title: "Medical Standards for Military Service: Appointment, Enlistment, or Induction"
+    source_agency: "DoD ESD WHS"
+    url: "https://www.esd.whs.mil/Portals/54/Documents/DD/issuances/dodi/613003_vol1.pdf"
+    filename: "dodi-6130-03-v1.pdf"
+    audience: "public"
+    sha256: null
+
+  - doc_id: "opnavinst_6110_1k"
+    instruction_number: "OPNAVINST 6110.1K"
+    title: "Physical Readiness Program"
+    source_agency: "Navy Fitness / OPNAV"
+    url: "https://www.navyfitness.org/modules/media/?do=download&id=fa75549c-4491-4ddc-bcba-9bdaa7c784b8"
+    filename: "opnavinst-6110-1k.pdf"
+    audience: "public"
+    sha256: null
+
+  - doc_id: "prt_guide_5a"
+    instruction_number: "PRP Guide 5A"
+    title: "Physical Readiness Test (PRT) Guide 5A: Standards and Tables"
+    source_agency: "MyNavyHR Physical Readiness"
+    url: "https://www.mynavyhr.navy.mil/Portals/55/Support/Culture%20Resilience/Physical/Guide-5A%20Physical%20Readiness%20Test.pdf?ver=97swOWVD_k6Ef3b62F4Grg%3D%3D"
+    filename: "guide-5a-prt.pdf"
+    audience: "public"
+    sha256: null
+
+  - doc_id: "manmed_ch15"
+    instruction_number: "MANMED Ch. 15"
+    title: "Manual of the Medical Department: Chapter 15 - Physical Examinations"
+    source_agency: "BUMED / Navy Medicine"
+    url: "https://www.med.navy.mil/Portals/62/Documents/BUMED/Directives/MANMED/MANMED%20Chapter%2015%20Medical%20Examinations%20(incorporates%20Changes%20126%20135-138%20140%20145%20150-152%20154-156%20160%20164-168).pdf?ver=Qi1I04shHw1panuLz_iXyQ%3d%3d"
+    filename: "navmed-p117-ch15.pdf"
+    audience: "public"
+    sha256: null
+
+  - doc_id: "dodi_1145_01"
+    instruction_number: "DoDI 1145.01"
+    title: "Qualifying Personnel in Military Occupations through the ASVAB"
+    source_agency: "DoD ESD WHS"
+    url: "https://www.esd.whs.mil/Portals/54/Documents/DD/issuances/dodi/114501p.pdf"
+    filename: "dodi-1145-01.pdf"
+    audience: "public"
+    sha256: null
+
+  - doc_id: "neocs_vol_1"
+    instruction_number: "NAVPERS 18068F Vol. I"
+    title: "Manual of Navy Enlisted Manpower and Personnel Classifications: Occupational Standards"
+    source_agency: "MyNavyHR NEOCS"
+    url: "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol1/ENTIRE_OCCSTDS%20Manual_108_Oct26_508_reduced.pdf?ver=H_UjTeJBWjTqYlaXqDLF2A%3d%3d"
+    filename: "navpers-18068f-vol1.pdf"
+    audience: "public"
+    sha256: null
+
+  - doc_id: "neocs_vol_2"
+    instruction_number: "NAVPERS 18068F Vol. II"
+    title: "Manual of Navy Enlisted Manpower and Personnel Classifications: Navy Enlisted Classifications"
+    source_agency: "MyNavyHR NEOCS"
+    url: "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/Entire_NEC_Manual_Vol_2_Oct_26.pdf?ver=kF2ODSlMI9Z-NLn4nB_-SQ%3d%3d"
+    filename: "navpers-18068f-vol2.pdf"
+    audience: "public"
+    sha256: null

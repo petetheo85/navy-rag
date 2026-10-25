@@ -189,6 +189,13 @@ ruff check .
 
 ---
 
+## Planned Crawlers & Pipeline Enhancements
+
+- [ ] **MILPERSMAN Automated Crawler:** Batch crawler to discover, download, and index all recruiting, reenlistment, and separation articles (`1100` and `1900` series) directly from MyNavy HR.
+- [ ] **NAVPERS 15665J Web Parser:** Periodic HTML scraper and converter for the online Navy Uniform Regulations (Articles 2101 and 2201) to continuously ingest updated hair, beard, tattoo, and grooming policies.
+
+---
+
 ## Project Structure
 
 ```

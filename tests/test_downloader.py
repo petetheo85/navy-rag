@@ -34,14 +34,22 @@ def _mock_stream_response(payload: bytes) -> MagicMock:
 class TestCorpusManifest:
     def test_loads_committed_corpus_manifest(self):
         manifest = load_corpus_manifest()
-        assert len(manifest.documents) == 4
+        assert len(manifest.documents) == 11
         doc_ids = {doc.doc_id for doc in manifest.documents}
-        assert doc_ids == {
+        expected_ids = {
             "comnavcruitcominst_1130_8",
             "cnrc_orlmm",
             "milpersman_1133_020",
             "dodi_1304_26",
+            "dodi_6130_03_v1",
+            "opnavinst_6110_1k",
+            "prt_guide_5a",
+            "manmed_ch15",
+            "dodi_1145_01",
+            "neocs_vol_1",
+            "neocs_vol_2",
         }
+        assert doc_ids == expected_ids
 
     def test_missing_manifest_raises(self, tmp_path: Path):
         with pytest.raises(FileNotFoundError, match="Corpus manifest not found"):

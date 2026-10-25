@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import logging
 import math
+import re
+import time
 from collections.abc import Sequence
 
 import chromadb
@@ -49,13 +51,48 @@ def get_vectorstore() -> Chroma:
     )
 
 
-def _already_ingested(vectorstore: Chroma, filename: str) -> bool:
+def _get_ingested_count(vectorstore: Chroma, filename: str) -> int:
     result = vectorstore._collection.get(
         where={"filename": filename},
-        limit=1,
         include=[],
     )
-    return len(result["ids"]) > 0
+    return len(result["ids"])
+
+
+def _add_documents_with_retry(
+    vectorstore: Chroma,
+    batch: list[Document],
+    *,
+    max_retries: int = 5,
+    initial_backoff: float = 35.0,
+) -> None:
+    """Add a batch of documents to Chroma with rate-limit and backoff retry logic."""
+    for attempt in range(1, max_retries + 1):
+        try:
+            vectorstore.add_documents(batch)
+            return
+        except Exception as exc:
+            err_msg = str(exc)
+            is_rate_limit = (
+                "429" in err_msg
+                or "RESOURCE_EXHAUSTED" in err_msg
+                or "quota" in err_msg.lower()
+            )
+            if not is_rate_limit or attempt == max_retries:
+                raise
+
+            backoff = initial_backoff * attempt
+            delay_match = re.search(r"retry in (\d+(?:\.\d+)?)s", err_msg)
+            if delay_match:
+                backoff = max(backoff, float(delay_match.group(1)) + 3.0)
+
+            logger.warning(
+                "Rate limit encountered (429). Backing off %.1fs (attempt %d/%d)...",
+                backoff,
+                attempt,
+                max_retries,
+            )
+            time.sleep(backoff)
 
 
 def embed_and_store(
@@ -82,9 +119,20 @@ def embed_and_store(
 
     to_store: list[Document] = []
     for fname, file_chunks in by_file.items():
-        if skip_existing and _already_ingested(vectorstore, fname):
-            logger.info("Skipping already indexed file: %s", fname)
+        existing_count = _get_ingested_count(vectorstore, fname)
+        if skip_existing and existing_count >= len(file_chunks):
+            logger.info("Skipping already indexed file: %s (%d chunks)", fname, existing_count)
             continue
+
+        if existing_count > 0:
+            logger.info(
+                "File %s is partially indexed (%d/%d chunks). Re-indexing cleanly...",
+                fname,
+                existing_count,
+                len(file_chunks),
+            )
+            vectorstore._collection.delete(where={"filename": fname})
+
         to_store.extend(file_chunks)
 
     if not to_store:
@@ -95,7 +143,7 @@ def embed_and_store(
     total_batches = math.ceil(len(to_store) / batch_size)
     for i in range(0, len(to_store), batch_size):
         batch = to_store[i : i + batch_size]
-        vectorstore.add_documents(batch)
+        _add_documents_with_retry(vectorstore, batch)
         stored += len(batch)
         logger.info(
             "Persisted batch %d/%d (%d chunks)",
@@ -103,6 +151,7 @@ def embed_and_store(
             total_batches,
             len(batch),
         )
+        time.sleep(0.4)
 
     logger.info("Stored %d new chunk(s) in '%s'.", stored, settings.chroma_collection)
     return stored

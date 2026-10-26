@@ -4,15 +4,53 @@ schema_version: "1.0"
 
 documents:
   - doc_id: "comnavcruitcominst_1130_8"
+    base_ssic: "COMNAVCRUITCOMINST 1130.8"
+    revision: "S"
+    change: 0
+    is_latest: true
+    last_verified: "2026-10-26"
     instruction_number: "COMNAVCRUITCOMINST 1130.8"
     title: "Navy Recruiting Manual - Enlisted"
-    source_agency: "CNRC / Navy Band Directives"
-    url: "https://www.navyband.navy.mil/documents/comnavcruitcominst-11308k.pdf"
+    source_agency: "CNRC eToolbox"
+    url: "https://etoolbox.cnrc.navy.mil/assets/N7B/instructions/Enlisted%20-%20Navy%20Recruiting%20Manual.pdf"
     filename: "comnavcruitcominst-1130-8.pdf"
     audience: "public"
     sha256: null
 
+  - doc_id: "cnrc_erlmm"
+    base_ssic: "COMNAVCRUITCOMINST 1130.19"
+    revision: "C"
+    change: 0
+    is_latest: true
+    last_verified: "2026-10-26"
+    instruction_number: "CNRC ERLMM"
+    title: "Navy Enlisted Recruiting Leadership and Management Manual (ERLMM)"
+    source_agency: "CNRC eToolbox"
+    url: "https://etoolbox.cnrc.navy.mil/assets/N7B/instructions/Enlisted-Recruiting%20Leadership%20and%20Management%20Manual.pdf"
+    filename: "cnrc-erlmm.pdf"
+    audience: "public"
+    sha256: null
+
+  - doc_id: "comnavcruitcominst_1131_2"
+    base_ssic: "COMNAVCRUITCOMINST 1131.2"
+    revision: "L"
+    change: 0
+    is_latest: true
+    last_verified: "2026-10-26"
+    instruction_number: "COMNAVCRUITCOMINST 1131.2"
+    title: "Navy Recruiting Manual - Officer"
+    source_agency: "CNRC eToolbox"
+    url: "https://etoolbox.cnrc.navy.mil/assets/N7B/instructions/Officer-Navy%20Recruiting%20Manual.pdf"
+    filename: "comnavcruitcominst-1131-2.pdf"
+    audience: "public"
+    sha256: null
+
   - doc_id: "cnrc_orlmm"
+    base_ssic: "COMNAVCRUITCOMINST 1130.21"
+    revision: "B"
+    change: 0
+    is_latest: true
+    last_verified: "2026-10-26"
     instruction_number: "CNRC ORLMM"
     title: "Navy Officer Recruiting Leadership and Management Manual (ORLMM)"
     source_agency: "CNRC eToolbox"
@@ -22,6 +60,11 @@ documents:
     sha256: null
 
   - doc_id: "milpersman_1133_020"
+    base_ssic: "MILPERSMAN 1133-020"
+    revision: null
+    change: 63
+    is_latest: true
+    last_verified: "2026-10-26"
     instruction_number: "MILPERSMAN 1133-020"
     title: "MILPERSMAN 1133-020 - Enlistment and Accession Programs Policy"
     source_agency: "MyNavyHR"
@@ -31,6 +74,11 @@ documents:
     sha256: null
 
   - doc_id: "dodi_1304_26"
+    base_ssic: "DoDI 1304.26"
+    revision: null
+    change: 4
+    is_latest: true
+    last_verified: "2026-10-26"
     instruction_number: "DoDI 1304.26"
     title: "Qualification Standards for Enlistment, Appointment, and Induction"
     source_agency: "DoD ESD WHS"
@@ -40,6 +88,11 @@ documents:
     sha256: null
 
   - doc_id: "dodi_6130_03_v1"
+    base_ssic: "DoDI 6130.03 Vol. 1"
+    revision: null
+    change: 6
+    is_latest: true
+    last_verified: "2026-10-26"
     instruction_number: "DoDI 6130.03 Vol. 1"
     title: "Medical Standards for Military Service: Appointment, Enlistment, or Induction"
     source_agency: "DoD ESD WHS"
@@ -49,6 +102,11 @@ documents:
     sha256: null
 
   - doc_id: "opnavinst_6110_1k"
+    base_ssic: "OPNAVINST 6110.1"
+    revision: "K"
+    change: 0
+    is_latest: true
+    last_verified: "2026-10-26"
     instruction_number: "OPNAVINST 6110.1K"
     title: "Physical Readiness Program"
     source_agency: "Navy Fitness / OPNAV"
@@ -58,7 +116,12 @@ documents:
     sha256: null
 
   - doc_id: "prt_guide_5a"
-    instruction_number: "PRP Guide 5A"
+    base_ssic: "PRT Guide 5A"
+    revision: null
+    change: 0
+    is_latest: true
+    last_verified: "2026-10-26"
+    instruction_number: "PRT Guide 5A"
     title: "Physical Readiness Test (PRT) Guide 5A: Standards and Tables"
     source_agency: "MyNavyHR Physical Readiness"
     url: "https://www.mynavyhr.navy.mil/Portals/55/Support/Culture%20Resilience/Physical/Guide-5A%20Physical%20Readiness%20Test.pdf?ver=97swOWVD_k6Ef3b62F4Grg%3D%3D"
@@ -67,6 +130,11 @@ documents:
     sha256: null
 
   - doc_id: "manmed_ch15"
+    base_ssic: "MANMED Ch. 15"
+    revision: null
+    change: 168
+    is_latest: true
+    last_verified: "2026-10-26"
     instruction_number: "MANMED Ch. 15"
     title: "Manual of the Medical Department: Chapter 15 - Physical Examinations"
     source_agency: "BUMED / Navy Medicine"
@@ -76,6 +144,11 @@ documents:
     sha256: null
 
   - doc_id: "dodi_1145_01"
+    base_ssic: "DoDI 1145.01"
+    revision: null
+    change: 3
+    is_latest: true
+    last_verified: "2026-10-26"
     instruction_number: "DoDI 1145.01"
     title: "Qualifying Personnel in Military Occupations through the ASVAB"
     source_agency: "DoD ESD WHS"
@@ -85,6 +158,11 @@ documents:
     sha256: null
 
   - doc_id: "neocs_vol_1"
+    base_ssic: "NAVPERS 18068 Vol. I"
+    revision: "F"
+    change: 0
+    is_latest: true
+    last_verified: "2026-10-26"
     instruction_number: "NAVPERS 18068F Vol. I"
     title: "Manual of Navy Enlisted Manpower and Personnel Classifications: Occupational Standards"
     source_agency: "MyNavyHR NEOCS"
@@ -94,10 +172,85 @@ documents:
     sha256: null
 
   - doc_id: "neocs_vol_2"
+    base_ssic: "NAVPERS 18068 Vol. II"
+    revision: "F"
+    change: 0
+    is_latest: true
+    last_verified: "2026-10-26"
     instruction_number: "NAVPERS 18068F Vol. II"
     title: "Manual of Navy Enlisted Manpower and Personnel Classifications: Navy Enlisted Classifications"
     source_agency: "MyNavyHR NEOCS"
     url: "https://www.mynavyhr.navy.mil/Portals/55/Reference/NEOCS/Vol2/Entire_NEC_Manual_Vol_2_Oct_26.pdf?ver=kF2ODSlMI9Z-NLn4nB_-SQ%3d%3d"
     filename: "navpers-18068f-vol2.pdf"
+    audience: "public"
+    sha256: null
+
+  - doc_id: "nrotc_scholarship_manual"
+    base_ssic: "COMNAVCRUITCOMINST 1533.4"
+    revision: "M"
+    change: 0
+    is_latest: true
+    last_verified: "2026-10-26"
+    instruction_number: "CNRC NROTC"
+    title: "Naval Reserve Officers Training Corps College Scholarship Manual"
+    source_agency: "CNRC eToolbox"
+    url: "https://etoolbox.cnrc.navy.mil/assets/N7B/officer%20specialized/Naval%20Reserve%20Officers%20Training%20Corps%20College%20Scholarship.pdf"
+    filename: "nrotc-scholarship-manual.pdf"
+    audience: "public"
+    sha256: null
+
+  - doc_id: "secnav_m_5510_30"
+    base_ssic: "SECNAV M-5510.30"
+    revision: null
+    change: 0
+    is_latest: true
+    last_verified: "2026-10-26"
+    instruction_number: "SECNAV M-5510.30"
+    title: "Department of the Navy Personnel Security Program"
+    source_agency: "SECNAV / NavyTribe Mirror (Temporary)"
+    url: "https://navytribe.com/wp-content/uploads/2015/08/secnav-m-5510-30.pdf"
+    filename: "secnav-m-5510-30.pdf"
+    audience: "public"
+    sha256: null
+
+  - doc_id: "dodm_5200_02"
+    base_ssic: "DoDM 5200.02"
+    revision: null
+    change: 1
+    is_latest: true
+    last_verified: "2026-10-26"
+    instruction_number: "DoD Manual 5200.02"
+    title: "Procedures for the DoD Personnel Security Program"
+    source_agency: "DoD ESD WHS"
+    url: "https://www.esd.whs.mil/Portals/54/Documents/DD/issuances/dodm/520002m.PDF"
+    filename: "dodm-5200-02.pdf"
+    audience: "public"
+    sha256: null
+
+  - doc_id: "srb_eligibility_chart"
+    base_ssic: "SRB Eligibility Chart"
+    revision: null
+    change: 1
+    is_latest: true
+    last_verified: "2026-10-26"
+    instruction_number: "SRB Chart FY27 CH1"
+    title: "Selective Reenlistment Bonus (SRB) Award Levels & Eligibility Chart"
+    source_agency: "MyNavyHR Enlisted Career Admin"
+    url: "https://www.mynavyhr.navy.mil/Portals/55/Career/EnlistedCareerAdmin/SRB%20Eligibility%20Chart%20FY27_CH1.pdf?ver=uaGpsZlhciab945FnX1sCQ%3d%3d"
+    filename: "srb-eligibility-chart.pdf"
+    audience: "public"
+    sha256: null
+
+  - doc_id: "bupersinst_1730_11"
+    base_ssic: "BUPERSINST 1730.11"
+    revision: "B"
+    change: 0
+    is_latest: true
+    last_verified: "2026-10-26"
+    instruction_number: "BUPERSINST 1730.11B"
+    title: "Standards and Procedures Governing the Accommodation of Religious Practices in the Navy"
+    source_agency: "MyNavyHR BUPERS"
+    url: "https://www.mynavyhr.navy.mil/Portals/55/Reference/Instructions/BUPERS/BUPERSINST%201730.11.pdf?ver=q3T5umc-Ax7rht5a3CjsTQ%3D%3D"
+    filename: "bupersinst-1730-11.pdf"
     audience: "public"
     sha256: null

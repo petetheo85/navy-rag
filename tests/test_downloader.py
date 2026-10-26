@@ -34,10 +34,12 @@ def _mock_stream_response(payload: bytes) -> MagicMock:
 class TestCorpusManifest:
     def test_loads_committed_corpus_manifest(self):
         manifest = load_corpus_manifest()
-        assert len(manifest.documents) == 11
+        assert len(manifest.documents) == 18
         doc_ids = {doc.doc_id for doc in manifest.documents}
         expected_ids = {
             "comnavcruitcominst_1130_8",
+            "cnrc_erlmm",
+            "comnavcruitcominst_1131_2",
             "cnrc_orlmm",
             "milpersman_1133_020",
             "dodi_1304_26",
@@ -48,8 +50,37 @@ class TestCorpusManifest:
             "dodi_1145_01",
             "neocs_vol_1",
             "neocs_vol_2",
+            "nrotc_scholarship_manual",
+            "secnav_m_5510_30",
+            "dodm_5200_02",
+            "srb_eligibility_chart",
+            "bupersinst_1730_11",
         }
         assert doc_ids == expected_ids
+
+    def test_versioning_fields_on_committed_manifest(self):
+        manifest = load_corpus_manifest()
+        doc_by_id = {doc.doc_id: doc for doc in manifest.documents}
+
+        for doc in manifest.documents:
+            assert doc.base_ssic, f"{doc.doc_id} must have non-empty base_ssic"
+            assert doc.is_latest is True, f"{doc.doc_id} must have is_latest=True"
+            assert doc.last_verified == "2026-10-26"
+            assert isinstance(doc.change, int)
+
+        assert doc_by_id["dodm_5200_02"].base_ssic == "DoDM 5200.02"
+        assert doc_by_id["dodm_5200_02"].revision is None
+        assert doc_by_id["dodm_5200_02"].change == 1
+
+        assert doc_by_id["bupersinst_1730_11"].base_ssic == "BUPERSINST 1730.11"
+        assert doc_by_id["bupersinst_1730_11"].revision == "B"
+        assert doc_by_id["bupersinst_1730_11"].change == 0
+
+        assert doc_by_id["srb_eligibility_chart"].base_ssic == "SRB Eligibility Chart"
+        assert doc_by_id["srb_eligibility_chart"].change == 1
+
+        assert doc_by_id["secnav_m_5510_30"].base_ssic == "SECNAV M-5510.30"
+        assert doc_by_id["secnav_m_5510_30"].revision is None
 
     def test_missing_manifest_raises(self, tmp_path: Path):
         with pytest.raises(FileNotFoundError, match="Corpus manifest not found"):

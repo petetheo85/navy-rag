@@ -7,11 +7,11 @@ import json
 import logging
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import requests
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
@@ -36,6 +36,18 @@ class CorpusDocument(BaseModel):
     audience: str = "public"
     sha256: str | None = None
     fallback_path: Path | None = None
+    base_ssic: str = ""
+    revision: str | None = None
+    change: int = 0
+    is_latest: bool = True
+    last_verified: str = "2026-10-26"
+
+    @model_validator(mode="before")
+    @classmethod
+    def _populate_base_ssic(cls, data: Any) -> Any:
+        if isinstance(data, dict) and not data.get("base_ssic"):
+            data["base_ssic"] = data.get("instruction_number", "")
+        return data
 
 
 class CorpusManifest(BaseModel):

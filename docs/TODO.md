@@ -27,21 +27,22 @@ Official Navy recruiting standards, uniform regulations, and medical qualificati
 
 ---
 
-### 2. Full Corpus Expansion & Indexing
+### 2. Full Corpus Expansion & Policy Sourcing
 - [x] Crawl and compile NAVPERS 15665J Chapters 1–7 into structured military directive PDFs.
 - [ ] Ingest NAVPERS 15665J Chapter PDFs into ChromaDB vector database.
 - [ ] Ingest all 25 downloaded MILPERSMAN 1100-series recruiting policy articles into ChromaDB.
+- [ ] **Officer CRUITMAN (COMNAVCRUITCOMINST 1131.2 series)**: Source and ingest the official Officer Recruiting Manual to cover officer candidate accession programs, commissioning qualifications, and direct appointment standards.
+- [ ] **CNRC e-Toolbox Operational Check (`https://etoolbox.cnrc.navy.mil/`)**: Monitor and verify crawler accessibility against the CNRC e-Toolbox directives portal, the primary operational distribution source where updated Enlisted CRUITMAN (1130.8) and Officer CRUITMAN revisions are routinely published.
 - [ ] Crawl MILPERSMAN 1300 (Assignment) and 1900 (Separation / Reenlistment codes RE-1 through RE-4).
 
 ---
 
 ### 3. Comprehensive Evaluation Benchmark Suite
-- [ ] Create `data/evals/golden_dataset.json` containing 50+ grounded recruiter and applicant queries with source documents, article numbers, page ranges, and ground-truth answer keys.
-- [ ] Build automated evaluation harness (`navy-rag eval`) measuring:
+- [x] Create `data/evals/golden_dataset.yaml` containing 50 grounded recruiter and applicant queries with source documents, article numbers, page ranges, and ground-truth answer keys.
+- [x] Build automated evaluation harness (`navy-rag eval`) measuring:
   - **Retrieval Recall@K** (k=3, k=5)
   - **Mean Reciprocal Rank (MRR)**
-  - **Citation Precision & Authenticity**
-  - **Groundedness / Faithfulness (LLM-as-a-judge & deterministic checks)**
+- [ ] Expand evaluation harness for full generation metrics (Citation Precision & Faithfulness/Groundedness).
 
 ---
 

@@ -1,0 +1,519 @@
+schema_version: "1.0"
+benchmark_name: "Navy Recruiting Knowledge Base Evaluation Benchmark"
+total_queries: 50
+
+queries:
+  # Medical qualification standards and accession physicals (DoDI 6130.03 Vol. 1, MANMED Ch. 15)
+  - id: "MED-01"
+    category: "medical_standards"
+    query: "Is asthma diagnosed after age 13 disqualifying for Navy enlistment, and can it be waived?"
+    expected_doc_ids: ["dodi_6130_03_v1", "manmed_ch15"]
+    expected_citations: ["DoDI 6130.03 Vol. 1", "MANMED Ch. 15"]
+    ground_truth_answer: "Asthma or reactive airway disease diagnosed after the 13th birthday is disqualifying under DoDI 6130.03 Vol 1. A BUMED medical waiver may be requested with normal pulmonary function testing (spirometry or methacholine challenge) showing no active bronchospasm."
+    key_facts:
+      - "Disqualifying after the 13th birthday"
+      - "BUMED medical waiver consideration requires pulmonary function test or spirometry"
+
+  - id: "MED-02"
+    category: "medical_standards"
+    query: "What is the waiting period for an applicant who was prescribed ADHD stimulant medication like Adderall?"
+    expected_doc_ids: ["dodi_6130_03_v1", "manmed_ch15"]
+    expected_citations: ["DoDI 6130.03 Vol. 1", "MANMED Ch. 15"]
+    ground_truth_answer: "A history of ADHD treated with prescription medication within the previous 24 months is disqualifying. Applicants must generally demonstrate at least 24 consecutive months off medication with demonstrated academic or job performance without accommodations before a waiver is considered."
+    key_facts:
+      - "24 months off medication required"
+      - "Demonstrated academic or work stability without accommodations"
+
+  - id: "MED-03"
+    category: "medical_standards"
+    query: "What are the refractive error limits and post-operative waiting periods for PRK and LASIK refractive eye surgery?"
+    expected_doc_ids: ["dodi_6130_03_v1", "manmed_ch15"]
+    expected_citations: ["DoDI 6130.03 Vol. 1", "MANMED Ch. 15"]
+    ground_truth_answer: "Corneal refractive surgery (PRK, LASIK, SMILE) is disqualifying unless at least 180 days (6 months) have elapsed since the procedure, refraction has stabilized, and there are no active complications or severe dry eye."
+    key_facts:
+      - "180 days (6 months) post-operative recovery period"
+      - "Documented refractive stability without complications"
+
+  - id: "MED-04"
+    category: "medical_standards"
+    query: "Is a history of depression or antidepressant use disqualifying for enlistment?"
+    expected_doc_ids: ["dodi_6130_03_v1", "manmed_ch15"]
+    expected_citations: ["DoDI 6130.03 Vol. 1", "MANMED Ch. 15"]
+    ground_truth_answer: "Depressive disorders requiring outpatient care, counseling, or medication within the prior 36 months, or exceeding 24 cumulative months of treatment, are disqualifying. Waivers require demonstrated psychological stability off medications for at least 36 months."
+    key_facts:
+      - "Disqualifying if treatment occurred within prior 36 months"
+      - "BUMED waiver requires psychiatric clearance and stability off medication"
+
+  - id: "MED-05"
+    category: "medical_standards"
+    query: "What are the maximum acceptable blood pressure limits during a MEPS medical examination?"
+    expected_doc_ids: ["dodi_6130_03_v1", "manmed_ch15"]
+    expected_citations: ["DoDI 6130.03 Vol. 1", "MANMED Ch. 15"]
+    ground_truth_answer: "Hypertension is defined as average systolic blood pressure greater than 140 mm Hg or diastolic pressure greater than 90 mm Hg across multiple readings taken over two separate days. Readings exceeding these thresholds are disqualifying."
+    key_facts:
+      - "Systolic greater than 140 mm Hg"
+      - "Diastolic greater than 90 mm Hg"
+
+  - id: "MED-06"
+    category: "medical_standards"
+    query: "Is atopic dermatitis or severe eczema disqualifying for naval accession?"
+    expected_doc_ids: ["dodi_6130_03_v1", "manmed_ch15"]
+    expected_citations: ["DoDI 6130.03 Vol. 1", "MANMED Ch. 15"]
+    ground_truth_answer: "A history of atopic dermatitis or eczema requiring treatment after the 12th birthday is disqualifying. Waivers require evaluation demonstrating localized involvement, lack of systemic therapy, and no interference with wearing military equipment."
+    key_facts:
+      - "Disqualifying if active or treated after age 12"
+      - "Must not interfere with military gear or combat uniforms"
+
+  - id: "MED-07"
+    category: "medical_standards"
+    query: "Can an applicant join with retained orthopedic hardware, such as surgical pins or plates from a previous fracture?"
+    expected_doc_ids: ["dodi_6130_03_v1", "manmed_ch15"]
+    expected_citations: ["DoDI 6130.03 Vol. 1", "MANMED Ch. 15"]
+    ground_truth_answer: "Retained orthopedic hardware is not disqualifying if the fracture is fully healed, the applicant has full range of motion without pain or functional deficit, and the hardware does not interfere with personal equipment or military gear."
+    key_facts:
+      - "Not disqualifying if asymptomatic and fracture fully healed"
+      - "Full range of motion and no interference with military equipment"
+
+  - id: "MED-08"
+    category: "medical_standards"
+    query: "What color vision tests are authorized at MEPS and what ratings require normal color vision?"
+    expected_doc_ids: ["manmed_ch15", "dodi_6130_03_v1"]
+    expected_citations: ["MANMED Ch. 15", "DoDI 6130.03 Vol. 1"]
+    ground_truth_answer: "Pseudoisochromatic plates (PIP) and the Farnsworth Lantern (FALANT) or OPTEC 900 are authorized color vision screening methods. Technical operational ratings including Aviation, Submarine, Nuclear Field, and Special Warfare require normal color vision."
+    key_facts:
+      - "FALANT or PIP plates authorized"
+      - "Color vision required for Aviation, Submarine, and Special Warfare"
+
+  - id: "MED-09"
+    category: "medical_standards"
+    query: "What is the policy regarding hearing threshold levels on the audiometer during the accession physical?"
+    expected_doc_ids: ["dodi_6130_03_v1", "manmed_ch15"]
+    expected_citations: ["DoDI 6130.03 Vol. 1", "MANMED Ch. 15"]
+    ground_truth_answer: "Hearing thresholds are disqualifying if pure tone hearing loss in either ear exceeds 30 dB average at 500, 1000, and 2000 Hz, or 35 dB at 2000 Hz, or 45 dB at 3000 Hz, or 55 dB at 4000 Hz."
+    key_facts:
+      - "30 dB average across 500, 1000, 2000 Hz"
+      - "Specific threshold cutoffs at high frequencies"
+
+  # Uniform appearance, tattoo placement, piercings, and grooming policies (NAVPERS 15665J Ch. 2)
+  - id: "TAT-01"
+    category: "grooming_tattoos"
+    query: "What is the Navy's tattoo policy regarding neck tattoos and allowed dimensions?"
+    expected_doc_ids: ["navpers_15665j_ch2"]
+    expected_citations: ["NAVPERS 15665J Ch. 2"]
+    ground_truth_answer: "One neck tattoo is authorized. The tattoo measurement shall not exceed one inch in diameter in any direction (one inch by one inch). Neck tattoos must be positioned behind the ear collar line and cannot extend onto the throat or face."
+    key_facts:
+      - "One neck tattoo authorized"
+      - "Maximum measurement is 1 inch by 1 inch"
+      - "Behind the ear collar line; prohibited on face/throat"
+
+  - id: "TAT-02"
+    category: "grooming_tattoos"
+    query: "Are full sleeve tattoos authorized for enlisted Sailors and recruits?"
+    expected_doc_ids: ["navpers_15665j_ch2"]
+    expected_citations: ["NAVPERS 15665J Ch. 2"]
+    ground_truth_answer: "Yes, tattoos on the torso, arms, and legs are authorized and may be of any size, including full sleeve tattoos, provided they do not depict prohibited content such as gang, supremacist, extremist, or obscene imagery."
+    key_facts:
+      - "Full sleeve tattoos on arms and legs are authorized"
+      - "No size limitation on arms or legs"
+      - "Must not display prohibited extremist, obscene, or gang themes"
+
+  - id: "TAT-03"
+    category: "grooming_tattoos"
+    query: "What hand and finger tattoos are permitted under NAVPERS 15665J?"
+    expected_doc_ids: ["navpers_15665j_ch2"]
+    expected_citations: ["NAVPERS 15665J Ch. 2"]
+    ground_truth_answer: "One ring tattoo is authorized on each hand, located on the finger where a ring is traditionally worn. Other hand tattoos extending across the back of the hand or palm are prohibited."
+    key_facts:
+      - "One ring tattoo per hand authorized"
+      - "Must be located on a finger"
+      - "General hand/palm tattoos prohibited"
+
+  - id: "TAT-04"
+    category: "grooming_tattoos"
+    query: "What tattoo content is strictly prohibited under Navy uniform regulations?"
+    expected_doc_ids: ["navpers_15665j_ch2"]
+    expected_citations: ["NAVPERS 15665J Ch. 2"]
+    ground_truth_answer: "Tattoos that are prejudicial to good order and discipline, extremist, racist, sexist, gang-related, sexually explicit, drug-promoting, or advocate the overthrow of the U.S. Government are strictly prohibited."
+    key_facts:
+      - "Prejudicial to good order and discipline"
+      - "Extremist, supremacist, gang-related, or obscene content"
+
+  - id: "TAT-05"
+    category: "grooming_tattoos"
+    query: "What are the male hair bulk and length standards under NAVPERS 15665J?"
+    expected_doc_ids: ["navpers_15665j_ch2"]
+    expected_citations: ["NAVPERS 15665J Ch. 2"]
+    ground_truth_answer: "Hair on top of the head must be neatly groomed with a maximum bulk not to exceed 2 inches. Hair cannot touch the ears, collar line, or extend below the eyebrows when headgear is worn, and sideburns must not extend below the middle of the ear."
+    key_facts:
+      - "Maximum bulk not to exceed 2 inches"
+      - "Must not touch ears or collar line"
+      - "Tapered appearance above the neck"
+
+  - id: "TAT-06"
+    category: "grooming_tattoos"
+    query: "Are male Sailors permitted to wear beards, and what are the no-shave chit medical standards?"
+    expected_doc_ids: ["navpers_15665j_ch2"]
+    expected_citations: ["NAVPERS 15665J Ch. 2"]
+    ground_truth_answer: "Beards are prohibited unless authorized for medical reasons (pseudofolliculitis barbae) or approved religious accommodations. When medically authorized by a medical officer via no-shave waiver, facial hair length cannot exceed 1/4 inch."
+    key_facts:
+      - "Beards prohibited except for medical (PFB) or religious waiver"
+      - "Medically authorized facial hair limited to 1/4 inch length"
+
+  - id: "TAT-07"
+    category: "grooming_tattoos"
+    query: "What is the policy regarding ear gauges and body piercing earlobe modification for applicants?"
+    expected_doc_ids: ["navpers_15665j_ch2", "comnavcruitcominst_1130_8"]
+    expected_citations: ["NAVPERS 15665J Ch. 2", "COMNAVCRUITCOMINST 1130.8"]
+    ground_truth_answer: "Intentional earlobe mutilation, stretching, or ear gauges are prohibited. Earlobe modification holes exceeding 1.6 mm (14 gauge) must be surgically reconstructed and healed prior to accession."
+    key_facts:
+      - "Earlobe stretching and gauges are prohibited"
+      - "Stretched holes must be surgically closed and healed prior to accession"
+
+  - id: "TAT-08"
+    category: "grooming_tattoos"
+    query: "What are the female hair grooming standards regarding ponytails, braids, and buns?"
+    expected_doc_ids: ["navpers_15665j_ch2"]
+    expected_citations: ["NAVPERS 15665J Ch. 2"]
+    ground_truth_answer: "Female hair may be worn in braids, cornrows, twists, or ponytails. Ponytails and braids may extend down the back up to three inches below the lower edge of the shirt or coat collar. Hair buns may not exceed three inches in bulk measured from the scalp."
+    key_facts:
+      - "Ponytails authorized extending up to 3 inches below collar"
+      - "Hair bun bulk not to exceed 3 inches"
+
+  # Moral qualifications, criminal history, and drug waiver authorities (COMNAVCRUITCOMINST 1130.8, DoDI 1304.26)
+  - id: "MOR-01"
+    category: "moral_legal_waivers"
+    query: "Can an applicant with pre-service marijuana use enlist in the Navy, and is a moral waiver required?"
+    expected_doc_ids: ["comnavcruitcominst_1130_8", "milpersman_1133_020"]
+    expected_citations: ["COMNAVCRUITCOMINST 1130.8", "MILPERSMAN 1133-020"]
+    ground_truth_answer: "Pre-service experimental or recreational marijuana use disclosed prior to accession is waiverable by the recruiting district commanding officer or Navy Recruiting Command, provided the applicant tests negative at MEPS and agrees to zero tolerance policy."
+    key_facts:
+      - "Pre-service marijuana use is waiverable"
+      - "Requires negative drug screen at MEPS"
+      - "Must execute zero tolerance agreement"
+
+  - id: "MOR-02"
+    category: "moral_legal_waivers"
+    query: "Can a conviction for misdemeanor domestic violence be waived for enlistment?"
+    expected_doc_ids: ["comnavcruitcominst_1130_8", "dodi_1304_26"]
+    expected_citations: ["COMNAVCRUITCOMINST 1130.8", "DoDI 1304.26"]
+    ground_truth_answer: "No. Under the Lautenberg Amendment (18 U.S.C. 922(g)(9)), individuals convicted of any felony or misdemeanor domestic violence offense cannot legally possess firearms or ammunition. This is a non-waivable statutory disqualification."
+    key_facts:
+      - "Lautenberg Amendment statutory prohibition"
+      - "Conviction of misdemeanor domestic violence cannot be waived"
+
+  - id: "MOR-03"
+    category: "moral_legal_waivers"
+    query: "What is the policy for an applicant currently on civil probation or with open court charges?"
+    expected_doc_ids: ["comnavcruitcominst_1130_8", "dodi_1304_26"]
+    expected_citations: ["COMNAVCRUITCOMINST 1130.8", "DoDI 1304.26"]
+    ground_truth_answer: "Applicants under any form of civil restraint, including active probation, parole, deferred adjudication, community service, or pending court appearances, are ineligible for enlistment until all court requirements are completely satisfied and dismissed."
+    key_facts:
+      - "Civil restraint or probation prohibits enlistment"
+      - "All fines, probation, and court requirements must be fully satisfied"
+
+  - id: "MOR-04"
+    category: "moral_legal_waivers"
+    query: "What waiver level is required for an applicant with a single Driving Under the Influence (DUI) conviction?"
+    expected_doc_ids: ["comnavcruitcominst_1130_8", "milpersman_1133_020"]
+    expected_citations: ["COMNAVCRUITCOMINST 1130.8", "MILPERSMAN 1133-020"]
+    ground_truth_answer: "A single DUI or DWI conviction is classified as a major misdemeanor misconduct offense requiring a waiver approved by the Commander, Navy Recruiting Command (CNRC), and generally requires a 12-month waiting period from completion of court sentencing."
+    key_facts:
+      - "Classified as major misconduct requiring CNRC waiver"
+      - "Mandatory post-disposition waiting period"
+
+  - id: "MOR-05"
+    category: "moral_legal_waivers"
+    query: "How many minor traffic violations can an applicant have before a moral waiver is triggered?"
+    expected_doc_ids: ["comnavcruitcominst_1130_8"]
+    expected_citations: ["COMNAVCRUITCOMINST 1130.8"]
+    ground_truth_answer: "Applicants with five or more minor non-traffic offenses or six or more traffic violations with fines exceeding statutory limits require an administrative waiver from the recruiting district commanding officer."
+    key_facts:
+      - "Six or more traffic infractions trigger waiver requirement"
+      - "Requires district commanding officer determination"
+
+  - id: "MOR-06"
+    category: "moral_legal_waivers"
+    query: "Can an applicant join if they have an active or recent bankruptcy on their credit record?"
+    expected_doc_ids: ["comnavcruitcominst_1130_8", "dodi_1304_26"]
+    expected_citations: ["COMNAVCRUITCOMINST 1130.8", "DoDI 1304.26"]
+    ground_truth_answer: "A history of personal bankruptcy is not an automatic bar to enlistment but requires a credit check and financial eligibility determination to ensure the applicant has no unresolved delinquent debt and can qualify for required security clearances."
+    key_facts:
+      - "Bankruptcy requires credit review and financial determination"
+      - "Must resolve delinquent debt and satisfy security clearance criteria"
+
+  - id: "MOR-07"
+    category: "moral_legal_waivers"
+    query: "What is the waiver authority for an applicant with an expunged or sealed juvenile felony record?"
+    expected_doc_ids: ["comnavcruitcominst_1130_8", "dodi_1304_26"]
+    expected_citations: ["COMNAVCRUITCOMINST 1130.8", "DoDI 1304.26"]
+    ground_truth_answer: "For military enlistment purposes, sealed or expunged records must be fully disclosed on federal security forms. Felony offenses require approval directly from Commander, Navy Recruiting Command (CNRC)."
+    key_facts:
+      - "Sealed and expunged records must be fully disclosed"
+      - "Felony waivers require CNRC commanding authority approval"
+
+  - id: "MOR-08"
+    category: "moral_legal_waivers"
+    query: "Is testing positive for THC or drugs on the MEPS initial accession urinalysis permanently disqualifying?"
+    expected_doc_ids: ["comnavcruitcominst_1130_8", "dodi_1304_26"]
+    expected_citations: ["COMNAVCRUITCOMINST 1130.8", "DoDI 1304.26"]
+    ground_truth_answer: "A positive drug test at MEPS results in an administrative disqualification with a mandatory waiting period (typically 90 days for cannabis under current pilot programs, or 2 years for other controlled substances) before retesting or waiver consideration."
+    key_facts:
+      - "Administrative disqualification upon positive MEPS test"
+      - "Mandatory waiting period prior to waiver re-application"
+
+  # Physical readiness program, body composition assessment (BCA), and PRT standards (OPNAVINST 6110.1K, PRP Guide 5A)
+  - id: "PRT-01"
+    category: "physical_readiness"
+    query: "What are the maximum allowable body fat percentages for male and female recruits by age?"
+    expected_doc_ids: ["opnavinst_6110_1k", "prt_guide_5a"]
+    expected_citations: ["OPNAVINST 6110.1K", "PRP Guide 5A"]
+    ground_truth_answer: "Under Navy Physical Readiness policy, the maximum body fat percentage for male personnel aged 18-21 is 26%, 22-29 is 26%, and 30-39 is 27%. For females, the maximum is 36% for ages 18-39."
+    key_facts:
+      - "Male age 18-29 limit is 26% body fat"
+      - "Female age 18-39 limit is 36% body fat"
+
+  - id: "PRT-02"
+    category: "physical_readiness"
+    query: "How does the Navy conduct the single-site abdominal circumference measurement in the BCA?"
+    expected_doc_ids: ["opnavinst_6110_1k", "prt_guide_5a"]
+    expected_citations: ["OPNAVINST 6110.1K", "PRP Guide 5A"]
+    ground_truth_answer: "If an applicant exceeds the height-weight screening table, an abdominal circumference measurement is taken at the iliac crest. Passing thresholds are less than or equal to 39.0 inches for males and 35.5 inches for females."
+    key_facts:
+      - "Measured horizontally at the top of the iliac crest"
+      - "Male cutoff is 39.0 inches or less"
+      - "Female cutoff is 35.5 inches or less"
+
+  - id: "PRT-03"
+    category: "physical_readiness"
+    query: "What are the official components of the Navy Physical Readiness Test (PRT)?"
+    expected_doc_ids: ["opnavinst_6110_1k", "prt_guide_5a"]
+    expected_citations: ["OPNAVINST 6110.1K", "PRP Guide 5A"]
+    ground_truth_answer: "The PRT consists of three events: the forearms plank (core endurance), push-ups (upper body muscular endurance), and the 1.5-mile run/walk or authorized alternate cardio option."
+    key_facts:
+      - "Forearm plank"
+      - "Push-ups"
+      - "1.5-mile run/walk or approved alternate cardio"
+
+  - id: "PRT-04"
+    category: "physical_readiness"
+    query: "What alternate cardio options are authorized on the Navy PRT and who may take them?"
+    expected_doc_ids: ["opnavinst_6110_1k", "prt_guide_5a"]
+    expected_citations: ["OPNAVINST 6110.1K", "PRP Guide 5A"]
+    ground_truth_answer: "Authorized alternate cardio options include the 2-kilometer row, 12-minute stationary cycle ergometer, and 500-yard/450-meter swim. Candidates require command approval and medical clearance where applicable."
+    key_facts:
+      - "2000m row, stationary bike, 500yd swim"
+      - "Subject to CO authorization and equipment availability"
+
+  - id: "PRT-05"
+    category: "physical_readiness"
+    query: "What is the minimum passing PRT score category required for enlisted personnel?"
+    expected_doc_ids: ["opnavinst_6110_1k", "prt_guide_5a"]
+    expected_citations: ["OPNAVINST 6110.1K", "PRP Guide 5A"]
+    ground_truth_answer: "The minimum passing performance standard for each event and the overall PRT is 'Probationary' (a composite score of 50 points or 'Satisfactory Medium' under revised scoring tables)."
+    key_facts:
+      - "Minimum passing standard is Satisfactory"
+      - "Must pass all individual events without failure"
+
+  - id: "PRT-06"
+    category: "physical_readiness"
+    query: "What are the career consequences for consecutive PRT or BCA failures?"
+    expected_doc_ids: ["opnavinst_6110_1k"]
+    expected_citations: ["OPNAVINST 6110.1K"]
+    ground_truth_answer: "Members with consecutive failures cannot advance in paygrade, reenlist, or execute change of duty orders, and are subject to mandatory administrative separation processing under MILPERSMAN guidelines."
+    key_facts:
+      - "Ineligible for advancement or reenlistment"
+      - "Subject to mandatory administrative separation"
+
+  - id: "PRT-07"
+    category: "physical_readiness"
+    query: "What postpartum convalescent period is granted to female service members before PRT testing?"
+    expected_doc_ids: ["opnavinst_6110_1k"]
+    expected_citations: ["OPNAVINST 6110.1K"]
+    ground_truth_answer: "Postpartum Sailors are exempt from PRT and BCA testing for 12 months following birth or termination of pregnancy, allowing recovery and breastfeeding accommodation."
+    key_facts:
+      - "12 months exemption following child delivery"
+      - "Medical clearance required before resuming official PRT"
+
+  - id: "PRT-08"
+    category: "physical_readiness"
+    query: "How is a medical waiver for a specific PRT event documented and approved?"
+    expected_doc_ids: ["opnavinst_6110_1k"]
+    expected_citations: ["OPNAVINST 6110.1K"]
+    ground_truth_answer: "Medical waivers are documented on NAVMED 6110/4 (Medical Waiver Recommendation) signed by an authorized credentialed medical provider and approved by the commanding officer."
+    key_facts:
+      - "Documented on NAVMED 6110/4"
+      - "Requires medical provider certification and CO endorsement"
+
+  # ASVAB line scores, education tiering, and enlisted rating classification (DoDI 1145.01, NEOCS Vol. I & II)
+  - id: "RAT-01"
+    category: "asvab_ratings_education"
+    query: "What is the difference between Tier 1 and Tier 2 education credentials for enlistment?"
+    expected_doc_ids: ["comnavcruitcominst_1130_8", "dodi_1145_01"]
+    expected_citations: ["COMNAVCRUITCOMINST 1130.8", "DoDI 1145.01"]
+    ground_truth_answer: "Tier 1 credentials include traditional high school diplomas, adult education diplomas, and applicants with at least 15 college semester hours. Tier 2 credentials include General Educational Development (GED) certificates and attendance certificates."
+    key_facts:
+      - "Tier 1 includes high school diplomas and 15+ college credits"
+      - "Tier 2 includes GED certificates"
+
+  - id: "RAT-02"
+    category: "asvab_ratings_education"
+    query: "What is the minimum AFQT score required for Tier 1 vs Tier 2 applicants to enlist?"
+    expected_doc_ids: ["comnavcruitcominst_1130_8", "dodi_1145_01"]
+    expected_citations: ["COMNAVCRUITCOMINST 1130.8", "DoDI 1145.01"]
+    ground_truth_answer: "Tier 1 high school graduates generally require a minimum AFQT score of 31 (with pilot programs occasionally accepting 10-30 in Tier IV). Tier 2 GED holders require an AFQT score of at least 50."
+    key_facts:
+      - "Tier 1 standard minimum AFQT is 31"
+      - "Tier 2 GED minimum AFQT is 50"
+
+  - id: "RAT-03"
+    category: "asvab_ratings_education"
+    query: "What are the ASVAB line score combinations required to qualify for the Nuclear Field (NF) pipeline?"
+    expected_doc_ids: ["comnavcruitcominst_1130_8", "neocs_vol_1"]
+    expected_citations: ["COMNAVCRUITCOMINST 1130.8", "NAVPERS 18068F Vol. I"]
+    ground_truth_answer: "Nuclear Field qualifications require either: VE + AR + MK + MC >= 252, or AR + MK + EI + GS >= 252 (or >= 235 with NAPT test qualifier), along with U.S. citizenship and security clearance eligibility."
+    key_facts:
+      - "VE + AR + MK + MC >= 252 or AR + MK + EI + GS >= 252"
+      - "Qualifying NAPT score allows lower combination line score"
+
+  - id: "RAT-04"
+    category: "asvab_ratings_education"
+    query: "Can a non-citizen Legal Permanent Resident (green card holder) enlist in cyber or intelligence ratings?"
+    expected_doc_ids: ["comnavcruitcominst_1130_8", "neocs_vol_1"]
+    expected_citations: ["COMNAVCRUITCOMINST 1130.8", "NAVPERS 18068F Vol. I"]
+    ground_truth_answer: "No. Cyber (CWT) and Intelligence (IS, IT, CTR, CTT) ratings require eligibility for a Top Secret / Sensitive Compartmented Information (TS/SCI) clearance, which is restricted by federal law and DoD policy to U.S. citizens."
+    key_facts:
+      - "Non-citizens (LPRs) cannot hold security clearances"
+      - "Cyber and Intelligence ratings strictly require U.S. citizenship"
+
+  - id: "RAT-05"
+    category: "asvab_ratings_education"
+    query: "What are the physical screening test (PST) minimum standards to contract for Special Warfare Operator (SEAL)?"
+    expected_doc_ids: ["comnavcruitcominst_1130_8"]
+    expected_citations: ["COMNAVCRUITCOMINST 1130.8"]
+    ground_truth_answer: "The baseline minimum PST standards for SO (SEAL) candidate contracts are: 500-yard breaststroke or sidestroke swim in under 12:30, 50 push-ups in 2 minutes, 50 curl-ups in 2 minutes, 10 pull-ups, and a 1.5-mile run in 10:30 or less."
+    key_facts:
+      - "500-yard swim under 12:30"
+      - "50 push-ups, 50 sit-ups, 10 pull-ups"
+      - "1.5-mile run under 10:30"
+
+  - id: "RAT-06"
+    category: "asvab_ratings_education"
+    query: "What manual defines Navy Enlisted Classification (NEC) codes and their prerequisites?"
+    expected_doc_ids: ["neocs_vol_2"]
+    expected_citations: ["NAVPERS 18068F Vol. II"]
+    ground_truth_answer: "NAVPERS 18068F Volume II (Manual of Navy Enlisted Manpower and Personnel Classifications: Navy Enlisted Classifications) defines all NEC codes, requirements, and assignment procedures."
+    key_facts:
+      - "NAVPERS 18068F Volume II"
+      - "Defines NEC skill codes, course completions, and rating qualifications"
+
+  - id: "RAT-07"
+    category: "asvab_ratings_education"
+    query: "What are Occupational Standards (OCCSTDS) and where are they officially codified?"
+    expected_doc_ids: ["neocs_vol_1"]
+    expected_citations: ["NAVPERS 18068F Vol. I"]
+    ground_truth_answer: "Occupational Standards establish the baseline tasks and skills required of enlisted ratings across paygrades E4 through E9, codified in NAVPERS 18068F Volume I."
+    key_facts:
+      - "Codified in NAVPERS 18068F Volume I"
+      - "Defines baseline occupational tasks for paygrades E4-E9"
+
+  - id: "RAT-08"
+    category: "asvab_ratings_education"
+    query: "How long is the ASVAB score valid for an applicant who took the test in high school or at MEPS?"
+    expected_doc_ids: ["dodi_1145_01", "comnavcruitcominst_1130_8"]
+    expected_citations: ["DoDI 1145.01", "COMNAVCRUITCOMINST 1130.8"]
+    ground_truth_answer: "ASVAB test scores are valid for military enlistment for exactly two years (24 months) from the date of test administration."
+    key_facts:
+      - "Valid for two years (24 months) from test date"
+      - "Retesting supersedes earlier test scores after mandatory retest waiting period"
+
+  - id: "RAT-09"
+    category: "asvab_ratings_education"
+    query: "What is the mandatory waiting period before an applicant can retest on the ASVAB?"
+    expected_doc_ids: ["dodi_1145_01"]
+    expected_citations: ["DoDI 1145.01"]
+    ground_truth_answer: "An applicant must wait one calendar month before taking a second ASVAB test. A third retest requires another one-month wait, and any subsequent retests require a six-month waiting period."
+    key_facts:
+      - "One calendar month after first test"
+      - "One calendar month after second test"
+      - "Six calendar months for third or subsequent retest"
+
+  # Prior service accessions, reenlistment eligibility codes, and commissioning (MILPERSMAN 1133-020, CNRC ORLMM)
+  - id: "PRI-01"
+    category: "prior_service_accessions"
+    query: "What does an RE-4 reenlistment code mean and can an RE-4 veteran enlist in the Navy?"
+    expected_doc_ids: ["milpersman_1133_020", "comnavcruitcominst_1130_8"]
+    expected_citations: ["MILPERSMAN 1133-020", "COMNAVCRUITCOMINST 1130.8"]
+    ground_truth_answer: "An RE-4 reenlistment eligibility code signifies ineligibility for reenlistment or military accession, typically issued for misconduct or disciplinary separation. It is non-waiverable unless the former service member successfully petitions the Naval Discharge Review Board (NDRB) or BCNR to upgrade their code."
+    key_facts:
+      - "RE-4 signifies ineligibility for reenlistment"
+      - "Non-waiverable without board of correction (BCNR/NDRB) code change"
+
+  - id: "PRI-02"
+    category: "prior_service_accessions"
+    query: "What is the waiver process for a prior-service veteran with an RE-3 code?"
+    expected_doc_ids: ["milpersman_1133_020", "comnavcruitcominst_1130_8"]
+    expected_citations: ["MILPERSMAN 1133-020", "COMNAVCRUITCOMINST 1130.8"]
+    ground_truth_answer: "An RE-3 code indicates eligible for reenlistment with an authorized waiver. Waivers are adjudicated by Commander, Navy Recruiting Command (CNRC) based on the underlying separation reason (e.g., medical, parenthood, performance)."
+    key_facts:
+      - "RE-3 codes are waiverable"
+      - "Adjudicated by CNRC based on separation reason"
+
+  - id: "PRI-03"
+    category: "prior_service_accessions"
+    query: "What is the maximum age limit for non-prior service enlisted Navy recruits?"
+    expected_doc_ids: ["comnavcruitcominst_1130_8", "dodi_1304_26"]
+    expected_citations: ["COMNAVCRUITCOMINST 1130.8", "DoDI 1304.26"]
+    ground_truth_answer: "The statutory maximum accession age for active duty enlisted recruits in the Navy is 41 years old (applicants must ship to Recruit Training Command before their 42nd birthday)."
+    key_facts:
+      - "Maximum age is 41 years old"
+      - "Must ship to RTC before 42nd birthday"
+
+  - id: "PRI-04"
+    category: "prior_service_accessions"
+    query: "How is prior active service credited against the maximum enlistment age limit?"
+    expected_doc_ids: ["milpersman_1133_020", "dodi_1304_26"]
+    expected_citations: ["MILPERSMAN 1133-020", "DoDI 1304.26"]
+    ground_truth_answer: "For prior service applicants, creditable previous active military service is subtracted from the applicant's chronological age to determine their adjusted accession age, ensuring they can complete 20 years of active service before mandatory retirement."
+    key_facts:
+      - "Prior active duty years subtracted from chronological age"
+      - "Must be able to reach 20 creditable years before statutory retirement"
+
+  - id: "PRI-05"
+    category: "prior_service_accessions"
+    query: "What basic eligibility and GPA requirements govern Officer Candidate School (OCS) applications?"
+    expected_doc_ids: ["cnrc_orlmm"]
+    expected_citations: ["CNRC ORLMM"]
+    ground_truth_answer: "OCS applicants must be U.S. citizens, hold a baccalaureate degree from an accredited institution with a minimum cumulative GPA (typically 2.8 or higher depending on designator), and achieve qualifying scores on the Officer Aptitude Rating (OAR)."
+    key_facts:
+      - "U.S. citizenship and accredited bachelor's degree"
+      - "Qualifying OAR exam score"
+
+  - id: "PRI-06"
+    category: "prior_service_accessions"
+    query: "What are the age limits and requirements for Navy Aviation Officer Candidate (Student Naval Aviator)?"
+    expected_doc_ids: ["cnrc_orlmm"]
+    expected_citations: ["CNRC ORLMM"]
+    ground_truth_answer: "Student Naval Aviator (SNA) applicants must be between 19 and 32 years of age at the time of commissioning, achieve passing scores on the ASTB-E (Aviation Selection Test Battery), and pass Class 1 Flight Physical vision standards."
+    key_facts:
+      - "Age limit 19 to 32 at commissioning"
+      - "Passing ASTB-E score and Class 1 flight physical"
+
+  - id: "PRI-07"
+    category: "prior_service_accessions"
+    query: "How does paygrade determination work for prior service enlisted members transferring from other military branches?"
+    expected_doc_ids: ["milpersman_1133_020"]
+    expected_citations: ["MILPERSMAN 1133-020"]
+    ground_truth_answer: "Prior service members from other branches (Army, Air Force, Marine Corps, Coast Guard) have their paygrade evaluated by Navy Personnel Command / CNRC based on time in rate, vacancy in the target Navy rating, and skill comparability."
+    key_facts:
+      - "Evaluated by CNRC / Navy Personnel Command"
+      - "Determined by target rating community health and skill match"
+
+  - id: "PRI-08"
+    category: "prior_service_accessions"
+    query: "What break-in-service duration requires a prior-service Sailor to attend refresher training or boot camp?"
+    expected_doc_ids: ["milpersman_1133_020"]
+    expected_citations: ["MILPERSMAN 1133-020"]
+    ground_truth_answer: "Prior service personnel with a break in active service exceeding six consecutive years are generally required to attend basic military orientation or designated refresher accession training prior to fleet assignment."
+    key_facts:
+      - "Break in service exceeding six years triggers refresher requirements"
+      - "Requires accession review and skills re-qualification"

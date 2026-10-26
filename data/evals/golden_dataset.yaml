@@ -429,8 +429,8 @@ queries:
   - id: "RAT-09"
     category: "asvab_ratings_education"
     query: "What is the mandatory waiting period before an applicant can retest on the ASVAB?"
-    expected_doc_ids: ["dodi_1145_01"]
-    expected_citations: ["DoDI 1145.01"]
+    expected_doc_ids: ["dodi_1145_01", "comnavcruitcominst_1130_8"]
+    expected_citations: ["DoDI 1145.01", "COMNAVCRUITCOMINST 1130.8"]
     ground_truth_answer: "An applicant must wait one calendar month before taking a second ASVAB test. A third retest requires another one-month wait, and any subsequent retests require a six-month waiting period."
     key_facts:
       - "One calendar month after first test"
@@ -471,8 +471,8 @@ queries:
   - id: "PRI-04"
     category: "prior_service_accessions"
     query: "How is prior active service credited against the maximum enlistment age limit?"
-    expected_doc_ids: ["milpersman_1133_020", "dodi_1304_26"]
-    expected_citations: ["MILPERSMAN 1133-020", "DoDI 1304.26"]
+    expected_doc_ids: ["milpersman_1133_020", "dodi_1304_26", "comnavcruitcominst_1130_8"]
+    expected_citations: ["MILPERSMAN 1133-020", "DoDI 1304.26", "COMNAVCRUITCOMINST 1130.8"]
     ground_truth_answer: "For prior service applicants, creditable previous active military service is subtracted from the applicant's chronological age to determine their adjusted accession age, ensuring they can complete 20 years of active service before mandatory retirement."
     key_facts:
       - "Prior active duty years subtracted from chronological age"
@@ -481,8 +481,8 @@ queries:
   - id: "PRI-05"
     category: "prior_service_accessions"
     query: "What basic eligibility and GPA requirements govern Officer Candidate School (OCS) applications?"
-    expected_doc_ids: ["cnrc_orlmm"]
-    expected_citations: ["CNRC ORLMM"]
+    expected_doc_ids: ["cnrc_orlmm", "comnavcruitcominst_1131_2"]
+    expected_citations: ["CNRC ORLMM", "COMNAVCRUITCOMINST 1131.2"]
     ground_truth_answer: "OCS applicants must be U.S. citizens, hold a baccalaureate degree from an accredited institution with a minimum cumulative GPA (typically 2.8 or higher depending on designator), and achieve qualifying scores on the Officer Aptitude Rating (OAR)."
     key_facts:
       - "U.S. citizenship and accredited bachelor's degree"
@@ -491,8 +491,8 @@ queries:
   - id: "PRI-06"
     category: "prior_service_accessions"
     query: "What are the age limits and requirements for Navy Aviation Officer Candidate (Student Naval Aviator)?"
-    expected_doc_ids: ["cnrc_orlmm"]
-    expected_citations: ["CNRC ORLMM"]
+    expected_doc_ids: ["cnrc_orlmm", "comnavcruitcominst_1131_2"]
+    expected_citations: ["CNRC ORLMM", "COMNAVCRUITCOMINST 1131.2"]
     ground_truth_answer: "Student Naval Aviator (SNA) applicants must be between 19 and 32 years of age at the time of commissioning, achieve passing scores on the ASTB-E (Aviation Selection Test Battery), and pass Class 1 Flight Physical vision standards."
     key_facts:
       - "Age limit 19 to 32 at commissioning"
@@ -501,8 +501,8 @@ queries:
   - id: "PRI-07"
     category: "prior_service_accessions"
     query: "How does paygrade determination work for prior service enlisted members transferring from other military branches?"
-    expected_doc_ids: ["milpersman_1133_020"]
-    expected_citations: ["MILPERSMAN 1133-020"]
+    expected_doc_ids: ["milpersman_1133_020", "comnavcruitcominst_1130_8"]
+    expected_citations: ["MILPERSMAN 1133-020", "COMNAVCRUITCOMINST 1130.8"]
     ground_truth_answer: "Prior service members from other branches (Army, Air Force, Marine Corps, Coast Guard) have their paygrade evaluated by Navy Personnel Command / CNRC based on time in rate, vacancy in the target Navy rating, and skill comparability."
     key_facts:
       - "Evaluated by CNRC / Navy Personnel Command"
@@ -511,8 +511,8 @@ queries:
   - id: "PRI-08"
     category: "prior_service_accessions"
     query: "What break-in-service duration requires a prior-service Sailor to attend refresher training or boot camp?"
-    expected_doc_ids: ["milpersman_1133_020"]
-    expected_citations: ["MILPERSMAN 1133-020"]
+    expected_doc_ids: ["milpersman_1133_020", "comnavcruitcominst_1130_8", "milpersman_1133_060"]
+    expected_citations: ["MILPERSMAN 1133-020", "COMNAVCRUITCOMINST 1130.8", "MILPERSMAN 1133-060"]
     ground_truth_answer: "Prior service personnel with a break in active service exceeding six consecutive years are generally required to attend basic military orientation or designated refresher accession training prior to fleet assignment."
     key_facts:
       - "Break in service exceeding six years triggers refresher requirements"

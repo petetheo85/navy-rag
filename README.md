@@ -91,14 +91,20 @@ Run the ingestion pipeline to parse, chunk, and embed documents into ChromaDB:
 # Bronze layer download from authoritative .mil policy manifest
 navy-rag download
 
+# Crawl MILPERSMAN 1100-Recruiting policy articles
+navy-rag crawl-milpersman
+
+# Crawl NAVPERS 15665J Uniform Regulations and compile into chapter PDFs
+navy-rag crawl-uniforms
+
 # Standard local ingestion into ChromaDB
 navy-rag ingest
 
 # Batch processing via PySpark for larger corpora
 navy-rag ingest --spark --parallelism 4
 
-# Force re-indexing
-navy-rag ingest --force
+# Run evaluation benchmark against 50 ground truth inquiries
+navy-rag eval
 ```
 
 ---
@@ -112,9 +118,9 @@ streamlit run app.py
 ```
 
 ### FastAPI Backend
-Provides REST endpoints and token streaming with interactive OpenAPI documentation available at `http://localhost:8000/docs`:
+Provides REST endpoints and token streaming with interactive OpenAPI documentation available at `http://127.0.0.1:8000/docs`:
 ```bash
-uvicorn navy_rag.api.main:app --reload --port 8000
+uvicorn navy_rag.api.main:app --host 127.0.0.1 --port 8000
 ```
 - `POST /api/chat`: Process inquiries with optional streaming (`stream=true`).
 - `GET /api/health`: Health check and active collection metadata.
@@ -189,10 +195,12 @@ ruff check .
 
 ---
 
-## Planned Crawlers & Pipeline Enhancements
+## Policy Crawlers & Evaluation Benchmarks
 
-- [ ] **MILPERSMAN Automated Crawler:** Batch crawler to discover, download, and index all recruiting, reenlistment, and separation articles (`1100` and `1900` series) directly from MyNavy HR.
-- [ ] **NAVPERS 15665J Web Parser:** Periodic HTML scraper and converter for the online Navy Uniform Regulations (Articles 2101 and 2201) to continuously ingest updated hair, beard, tattoo, and grooming policies.
+- [x] **MILPERSMAN Automated Crawler:** Batch crawler discovering and indexing recruiting policy articles (`1100` series) directly from MyNavy HR (`navy-rag crawl-milpersman`).
+- [x] **NAVPERS 15665J Chapter Typesetter:** Recursive Table of Contents scraper converting online Navy Uniform Regulations (Chapters 1–7) into authentic military directive PDFs (`navy-rag crawl-uniforms`).
+- [x] **Evaluation Benchmark Suite:** 50-query verified ground truth dataset spanning medical, grooming, moral waivers, PRT, ASVAB, and accessions with Recall@K and MRR scoring (`navy-rag eval`).
+- [ ] **Automated Policy Synchronization:** Weekly cron drift detection checking upstream ETags/hashes (`docs/TODO.md`).
 
 ---
 
@@ -207,16 +215,23 @@ navy-rag/
 │   │   ├── loader.py           # Document loading and metadata normalization
 │   │   ├── chunker.py          # Character and token-aware text splitting
 │   │   ├── embedder.py         # ChromaDB vector store client & embedding manager
-│   │   └── spark_processor.py  # PySpark parallelized batch ingestion
+│   │   ├── spark_processor.py  # PySpark parallelized batch ingestion
+│   │   └── crawlers/           # Recursive MILPERSMAN & Uniform Regulations scrapers
 │   ├── retrieval/retriever.py  # Dense and MMR retrieval with audience filtering
 │   ├── chain/
 │   │   ├── prompts.py          # Grounded and classification prompt templates
 │   │   ├── rag_chain.py        # LCEL retrieval chain & streaming handlers
 │   │   └── graph.py            # LangGraph state machine & guardrail routing
+│   ├── evals/                  # Quantitative benchmark scoring (Recall@K, MRR)
+│   │   ├── models.py           # Evaluation Pydantic schemas
+│   │   └── evaluator.py        # Benchmark query runner and metric aggregator
 │   ├── cli/
 │   │   ├── main.py             # Unified CLI entry point (`navy-rag`)
 │   │   ├── download.py         # Bronze download subcommand (`navy-rag download`)
-│   │   └── ingest.py           # Document ingestion subcommand (`navy-rag ingest`)
+│   │   ├── crawl_milpersman.py # MILPERSMAN crawler (`navy-rag crawl-milpersman`)
+│   │   ├── crawl_uniforms.py   # Uniforms typesetter (`navy-rag crawl-uniforms`)
+│   │   ├── ingest.py           # Document ingestion subcommand (`navy-rag ingest`)
+│   │   └── eval.py             # Evaluation benchmark (`navy-rag eval`)
 │   ├── api/
 │   │   ├── main.py             # FastAPI application and route handlers
 │   │   └── models.py           # Pydantic request and response schemas
@@ -225,7 +240,9 @@ navy-rag/
 │   ├── style.css               # CNRC brand CSS styling and layout rules
 │   └── *.png                   # Brand graphics and iconography
 ├── data/
-│   └── public/                 # Instructions and policy documents (PDF)
+│   ├── manifests/              # Declarative Bronze corpus manifest (YAML)
+│   ├── evals/                  # Golden dataset 50-query benchmark
+│   └── raw/                    # Immutable source PDFs & crawled sub-corpora
 ├── app.py                      # Streamlit interactive application
 └── tests/                      # Pytest suite
 ```

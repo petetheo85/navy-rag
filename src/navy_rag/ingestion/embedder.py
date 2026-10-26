@@ -51,6 +51,16 @@ def get_vectorstore() -> Chroma:
     )
 
 
+def generate_chunk_id(chunk: Document) -> str:
+    """Generate deterministic versioned chunk ID: {doc_id}_rev{rev}_ch{change}_{chunk_index:04d}."""
+    doc_id = chunk.metadata.get("doc_id") or "doc"
+    raw_rev = chunk.metadata.get("revision")
+    rev = "0" if (not raw_rev or raw_rev == "BASE") else str(raw_rev)
+    change = int(chunk.metadata.get("change", 0))
+    chunk_index = int(chunk.metadata.get("chunk_index", 0))
+    return f"{doc_id}_rev{rev}_ch{change}_{chunk_index:04d}"
+
+
 def _get_ingested_count(vectorstore: Chroma, filename: str) -> int:
     result = vectorstore._collection.get(
         where={"filename": filename},
@@ -62,6 +72,7 @@ def _get_ingested_count(vectorstore: Chroma, filename: str) -> int:
 def _add_documents_with_retry(
     vectorstore: Chroma,
     batch: list[Document],
+    ids: list[str] | None = None,
     *,
     max_retries: int = 5,
     initial_backoff: float = 35.0,
@@ -69,7 +80,7 @@ def _add_documents_with_retry(
     """Add a batch of documents to Chroma with rate-limit and backoff retry logic."""
     for attempt in range(1, max_retries + 1):
         try:
-            vectorstore.add_documents(batch)
+            vectorstore.add_documents(batch, ids=ids)
             return
         except Exception as exc:
             err_msg = str(exc)
@@ -143,7 +154,22 @@ def embed_and_store(
     total_batches = math.ceil(len(to_store) / batch_size)
     for i in range(0, len(to_store), batch_size):
         batch = to_store[i : i + batch_size]
-        _add_documents_with_retry(vectorstore, batch)
+        for c in batch:
+            if "base_ssic" not in c.metadata or not c.metadata["base_ssic"]:
+                c.metadata["base_ssic"] = c.metadata.get("instruction_number", "")
+            if "revision" not in c.metadata or c.metadata["revision"] is None:
+                c.metadata["revision"] = "BASE"
+            if "change" not in c.metadata:
+                c.metadata["change"] = 0
+            else:
+                c.metadata["change"] = int(c.metadata["change"])
+            if "is_latest" not in c.metadata:
+                c.metadata["is_latest"] = True
+            else:
+                c.metadata["is_latest"] = bool(c.metadata["is_latest"])
+
+        ids = [generate_chunk_id(chunk) for chunk in batch]
+        _add_documents_with_retry(vectorstore, batch, ids=ids)
         stored += len(batch)
         logger.info(
             "Persisted batch %d/%d (%d chunks)",

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -10,6 +11,7 @@ from langchain_core.documents import Document
 from navy_rag.ingestion.chunker import chunk_documents
 from navy_rag.ingestion.loader import (
     _audience_from_path,
+    _derive_subcorpora_metadata,
     _extract_instruction_number,
     discover_pdfs,
 )
@@ -118,8 +120,45 @@ class TestDiscoverPdfs:
         assert len(pdfs) == 2
         assert all(p.suffix == ".pdf" for p in pdfs)
 
+    def test_discovers_subcorpora_pdfs(self, tmp_path):
+        raw = tmp_path / "raw"
+        raw.mkdir()
+        (raw / "root.pdf").touch()
+        uniform = raw / "uniform_regs"
+        uniform.mkdir()
+        (uniform / "navpers-15665j-ch2.pdf").touch()
+        mil = raw / "milpersman"
+        mil.mkdir()
+        (mil / "milpersman-1100-011.pdf").touch()
+
+        with patch("navy_rag.ingestion.loader.settings") as mock_settings:
+            mock_settings.allowed_audiences = ["public"]
+            mock_settings.data_dir = tmp_path
+            pdfs = discover_pdfs(tmp_path)
+
+        assert len(pdfs) == 3
+        filenames = {p.name for p in pdfs}
+        assert filenames == {"root.pdf", "navpers-15665j-ch2.pdf", "milpersman-1100-011.pdf"}
+
     def test_missing_folder_returns_empty(self, tmp_path):
         with patch("navy_rag.ingestion.loader.settings") as mock_settings:
             mock_settings.allowed_audiences = ["public"]
             mock_settings.data_dir = tmp_path
             assert discover_pdfs(tmp_path) == []
+
+
+class TestSubcorporaMetadata:
+    def test_uniform_regs_metadata(self):
+        meta = _derive_subcorpora_metadata(Path("data/raw/uniform_regs/navpers-15665j-ch2.pdf"))
+        assert meta["doc_id"] == "navpers_15665j_ch2"
+        assert meta["base_ssic"] == "NAVPERS 15665"
+        assert meta["revision"] == "J"
+        assert meta["instruction_number"] == "NAVPERS 15665J Ch. 2"
+        assert meta["is_latest"] is True
+
+    def test_milpersman_metadata(self):
+        meta = _derive_subcorpora_metadata(Path("data/raw/milpersman/milpersman-1100-011.pdf"))
+        assert meta["doc_id"] == "milpersman_1100_011"
+        assert meta["base_ssic"] == "MILPERSMAN 1100-011"
+        assert meta["revision"] == "BASE"
+        assert meta["instruction_number"] == "MILPERSMAN 1100-011"

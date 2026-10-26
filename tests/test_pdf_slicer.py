@@ -37,6 +37,13 @@ def test_resolve_pdf_path(tmp_path: Path, monkeypatch):
     assert resolve_pdf_path("comnavcruitcominst-11308k.pdf") == pdf
     assert resolve_pdf_path("nonexistent.pdf") is None
 
+    # Subcorpora resolution
+    sub_dir = raw_dir / "milpersman"
+    sub_dir.mkdir()
+    sub_pdf = sub_dir / "milpersman-1133-061.pdf"
+    sub_pdf.touch()
+    assert resolve_pdf_path("milpersman-1133-061.pdf") == sub_pdf
+
 
 def test_get_page_text_returns_string_or_none(tmp_path: Path, monkeypatch):
     from navy_rag.config import settings

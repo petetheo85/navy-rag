@@ -50,6 +50,16 @@ def get_document_metadata(filename: str) -> dict[str, str]:
     except Exception as exc:
         logger.debug("Failed reading manifest for %s: %s", filename, exc)
 
+    from navy_rag.ingestion.loader import _derive_subcorpora_metadata
+
+    sub_meta = _derive_subcorpora_metadata(Path(filename))
+    if sub_meta:
+        return {
+            "title": sub_meta.get("title", ""),
+            "instruction_number": sub_meta.get("instruction_number", ""),
+            "source_agency": sub_meta.get("source_agency", ""),
+        }
+
     return {}
 
 
@@ -75,9 +85,11 @@ def resolve_pdf_path(filename: str) -> Path | None:
     if not filename:
         return None
 
-    # Direct match in raw storage or data directories
+    # Direct match in raw storage, crawled sub-corpora, or data directories
     candidates = [
         settings.raw_data_dir / filename,
+        settings.raw_data_dir / "milpersman" / filename,
+        settings.raw_data_dir / "uniform_regs" / filename,
         settings.data_dir / "public" / filename,
         settings.data_dir / filename,
     ]
@@ -89,9 +101,9 @@ def resolve_pdf_path(filename: str) -> Path | None:
     if not target_clean:
         return None
 
-    # Search raw storage for matching or normalized stem (e.g. 11308k vs 1130-8)
+    # Search raw storage and sub-corpora for matching or normalized stem (e.g. 11308k vs 1130-8)
     if settings.raw_data_dir.is_dir():
-        for path in settings.raw_data_dir.glob("*.pdf"):
+        for path in settings.raw_data_dir.rglob("*.pdf"):
             cand_clean = _clean_stem(path.stem)
             if (
                 cand_clean == target_clean

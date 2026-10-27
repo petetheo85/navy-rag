@@ -99,8 +99,13 @@ with st.sidebar:
         "Can someone enlist with a misdemeanor record?",
         "What physical standards apply to SEAL and Diver programs?",
         "What ASVAB scores are required for Cyber (CWT)?",
+        "What is the maximum age limit to enlist in the Navy?",
+        "What are the body fat percentage limits for recruits?",
+        "What is the waiting period after PRK or LASIK eye surgery?",
+        "Can prior-service veterans with an RE-3 code reenlist?",
+        "What are the requirements for Officer Candidate School (OCS)?",
     ]
-    with st.container(height=230):
+    with st.container(key="sidebar_questions"):
         for i, q in enumerate(examples):
             if st.button(q, key=f"ex_{i}", width="stretch", disabled=is_busy):
                 st.session_state.pending_question = q

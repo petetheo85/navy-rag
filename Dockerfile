@@ -10,11 +10,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install python dependencies into an isolated virtual environment
 COPY pyproject.toml ./
-COPY src/ src/
 
-RUN python -m venv /opt/venv && \
+# Bootstrap empty package so pip resolves and builds all third-party dependencies
+RUN mkdir -p src/navy_rag && touch src/navy_rag/__init__.py && \
+    python -m venv /opt/venv && \
     /opt/venv/bin/pip install --no-cache-dir --upgrade pip && \
     /opt/venv/bin/pip install --no-cache-dir .
+
+# Copy full application source code and install package without reinstalling dependencies
+COPY src/ src/
+RUN /opt/venv/bin/pip install --no-cache-dir --no-deps .
 
 # Runtime container
 FROM python:3.11-slim AS runner

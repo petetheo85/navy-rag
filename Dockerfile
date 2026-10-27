@@ -35,13 +35,15 @@ ENV PORT=1775
 # Run container as non-root user
 RUN groupadd -r appuser && useradd -r -g appuser -d /app appuser
 
-# Copy application code, assets, data catalog, and populated vector database
-COPY src/ src/
-COPY assets/ assets/
-COPY app.py ./
+# Copy static vector database and authoritative directives
 COPY data/manifests/ data/manifests/
 COPY data/raw/ data/raw/
 COPY chroma_db/ chroma_db/
+
+# Copy application assets and runtime source code
+COPY assets/ assets/
+COPY src/ src/
+COPY app.py ./
 
 # Ensure runtime directories exist and have correct permissions
 RUN mkdir -p logs && chown -R appuser:appuser /app

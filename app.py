@@ -467,10 +467,25 @@ if st.session_state.messages and st.session_state.messages[-1].get("role") == "u
                 sources = result.get("sources", [])
                 scope = result.get("scope", "")
             except Exception as exc:
-                answer = "An error occurred while querying the Navy intelligence knowledge base. Please try again."
+                print(f"QUERY ERROR: {type(exc).__name__}: {exc}", flush=True)
+                err_text = str(exc).lower()
+                if any(k in err_text for k in ("resource_exhausted", "429", "quota", "rate limit")):
+                    answer = (
+                        "**System Advisory: Throughput Capacity Reached**\n\n"
+                        "The recruiting intelligence service is currently experiencing high inquiry volume "
+                        "and has temporarily reached its automated policy verification threshold.\n\n"
+                        "Please pause 30–60 seconds and submit your inquiry again, or consult with an authorized "
+                        "Navy Recruiter or Command Career Counselor (CCC) for immediate guidance."
+                    )
+                else:
+                    answer = (
+                        "**System Advisory: Knowledge Base Temporarily Unavailable**\n\n"
+                        "An unexpected processing error occurred while reviewing authoritative Navy Directives. "
+                        "Please re-submit your inquiry. If this notice persists, refer to the published Navy Instructions "
+                        "catalog or contact an authorized recruiter."
+                    )
                 sources = []
                 scope = "error"
-                st.error(str(exc))
             finally:
                 st.session_state.is_generating = False
 

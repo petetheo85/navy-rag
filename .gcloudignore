@@ -1,0 +1,36 @@
+# Google Cloud build context exclusion rules
+.gcloudignore
+.git/
+.gitignore
+
+# Virtual environments & cache
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+
+# Local secrets & configs (CRITICAL)
+.env
+.env.*
+certs/
+
+# Development artifacts
+tests/
+logs/
+scratch/
+.system_generated/
+.vscode/
+.idea/
+
+# Explicitly INCLUDE vector store and raw documents for Docker build
+!chroma_db/
+!chroma_db/**
+!data/
+!data/raw/
+!data/raw/**
+!data/manifests/
+!data/manifests/**

@@ -1,5 +1,6 @@
 # Navy RAG: Recruiting Intelligence
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Google%20Cloud%20Run-4285F4?logo=googlecloud&logoColor=white)](https://navy-rag-676509381448.us-central1.run.app)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![LangGraph](https://img.shields.io/badge/orchestration-LangGraph-purple.svg)](https://github.com/langchain-ai/langgraph)
 [![ChromaDB](https://img.shields.io/badge/vectorstore-ChromaDB-orange.svg)](https://www.trychroma.com/)
@@ -8,6 +9,9 @@
 [![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
 A retrieval-augmented generation (RAG) system for U.S. Navy recruiting questions, backed by published Navy instructions and recruiting regulations. Designed to assist prospective applicants and recruiters with inquiries regarding enlistment standards, moral and medical waivers, tattoo policies, and rating requirements through verified policy citations.
+
+> ⚓ **Live Application:** Access the deployed recruiter intelligence system running on Google Cloud Run:  
+> 👉 **[https://navy-rag-676509381448.us-central1.run.app](https://navy-rag-676509381448.us-central1.run.app)**
 
 > ⚠️ **Project Status & Disclaimer:** This project is an active engineering prototype under development. The core orchestration, retrieval engine, and user interfaces are implemented, while document corpus expansion and integration testing across external tool protocols (MCP) remain ongoing. This is an unofficial demonstration project and is not affiliated with or endorsed by the U.S. Navy or the Department of Defense.
 
@@ -91,10 +95,11 @@ Run the ingestion pipeline to parse, chunk, and embed documents into ChromaDB:
 # Bronze layer download from authoritative .mil policy manifest
 navy-rag download
 
-# Crawl MILPERSMAN 1100-Recruiting policy articles
-navy-rag crawl-milpersman
+# One-step acquisition: download manifest directives AND run sub-corpora crawlers
+navy-rag download --all
 
-# Crawl NAVPERS 15665J Uniform Regulations and compile into chapter PDFs
+# Or run individual crawlers selectively:
+navy-rag crawl-milpersman
 navy-rag crawl-uniforms
 
 # Standard local ingestion into ChromaDB

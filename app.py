@@ -471,11 +471,11 @@ if st.session_state.messages and st.session_state.messages[-1].get("role") == "u
                 err_text = str(exc).lower()
                 if any(k in err_text for k in ("resource_exhausted", "429", "quota", "rate limit")):
                     answer = (
-                        "**System Advisory: Throughput Capacity Reached**\n\n"
-                        "The recruiting intelligence service is currently experiencing high inquiry volume "
-                        "and has temporarily reached its automated policy verification threshold.\n\n"
-                        "Please pause 30–60 seconds and submit your inquiry again, or consult with an authorized "
-                        "Navy Recruiter or Command Career Counselor (CCC) for immediate guidance."
+                        "**System Advisory: Demonstration Quota Limit Reached**\n\n"
+                        "This is an independent, unfunded demonstration project and has temporarily "
+                        "reached its automated inquiry verification threshold.\n\n"
+                        "Please pause for 30–60 seconds and submit your inquiry again, or consult with an authorized "
+                        "Navy Recruiter for immediate guidance."
                     )
                 else:
                     answer = (

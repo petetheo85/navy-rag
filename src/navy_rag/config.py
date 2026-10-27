@@ -83,7 +83,7 @@ class Settings(BaseSettings):
 
     # Model configuration
     llm_provider: Literal["google_genai", "openai", "anthropic"] = "google_genai"
-    llm_model: str = "gemini-3.6-flash"
+    llm_model: str = "gemini-3.5-flash-lite"
     llm_temperature: float = Field(default=0.3, ge=0.0, le=1.0)
     llm_max_tokens: int = Field(default=2048, gt=0)
 

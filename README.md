@@ -6,12 +6,10 @@
 [![ChromaDB](https://img.shields.io/badge/vectorstore-ChromaDB-orange.svg)](https://www.trychroma.com/)
 [![FastAPI](https://img.shields.io/badge/API-FastAPI-green.svg)](https://fastapi.tiangolo.com/)
 [![Streamlit](https://img.shields.io/badge/UI-Streamlit-red.svg)](https://streamlit.io/)
-[![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
 A retrieval-augmented generation (RAG) system for U.S. Navy recruiting questions, backed by published Navy instructions and recruiting regulations. Designed to assist prospective applicants and recruiters with inquiries regarding enlistment standards, moral and medical waivers, tattoo policies, and rating requirements through verified policy citations.
 
-> ⚓ **Live Application:** Access the deployed recruiter intelligence system running on Google Cloud Run:  
-> 👉 **[https://navy-rag-676509381448.us-central1.run.app](https://navy-rag-676509381448.us-central1.run.app)**
+> **Live Application:** Access the Navy Recruiter Intelligence System running on Google Cloud Run: [https://navy-rag-676509381448.us-central1.run.app](https://navy-rag-676509381448.us-central1.run.app)
 
 > ⚠️ **Project Status & Disclaimer:** This project is an active engineering prototype under development. The core orchestration, retrieval engine, and user interfaces are implemented, while document corpus expansion and integration testing across external tool protocols (MCP) remain ongoing. This is an unofficial demonstration project and is not affiliated with or endorsed by the U.S. Navy or the Department of Defense.
 
@@ -168,7 +166,7 @@ Switch model providers cleanly in `.env` without altering application code:
 ```bash
 # Google Gemini (Default)
 LLM_PROVIDER=google_genai
-LLM_MODEL=gemini-3.6-flash
+LLM_MODEL=gemini-3.5-flash-lite
 
 # OpenAI
 LLM_PROVIDER=openai

@@ -100,9 +100,10 @@ with st.sidebar:
         "What physical standards apply to SEAL and Diver programs?",
         "What ASVAB scores are required for Cyber (CWT)?",
     ]
-    for i, q in enumerate(examples):
-        if st.button(q, key=f"ex_{i}", width="stretch", disabled=is_busy):
-            st.session_state.pending_question = q
+    with st.container(height=230):
+        for i, q in enumerate(examples):
+            if st.button(q, key=f"ex_{i}", width="stretch", disabled=is_busy):
+                st.session_state.pending_question = q
 
     # Distinct Reset Briefing Button
     if st.button(

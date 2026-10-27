@@ -1,0 +1,29 @@
+# Version control
+.git/
+.gitignore
+
+# Virtual environment & Python cache
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+
+# Local configuration & secrets
+.env
+.env.*
+certs/
+
+# Testing & temporary logs
+tests/
+logs/*.log
+scratch/
+.system_generated/
+
+# Documentation & IDE
+docs/
+.vscode/
+.idea/

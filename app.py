@@ -101,7 +101,7 @@ with st.sidebar:
         "What ASVAB scores are required for Cyber (CWT)?",
     ]
     for i, q in enumerate(examples):
-        if st.button(q, key=f"ex_{i}", use_container_width=True, disabled=is_busy):
+        if st.button(q, key=f"ex_{i}", width="stretch", disabled=is_busy):
             st.session_state.pending_question = q
 
     # Distinct Reset Briefing Button
@@ -109,7 +109,7 @@ with st.sidebar:
         "↺ Reset Briefing / Clear Chat",
         key="btn_reset_briefing",
         type="primary",
-        use_container_width=True,
+        width="stretch",
         disabled=is_busy,
     ):
         st.session_state.messages = []
@@ -319,7 +319,7 @@ def show_policy_dialog(item: dict) -> None:
 
     page_img = render_pdf_page_image(filename, selected_page, scale=2.0)
     if page_img:
-        st.image(page_img, use_container_width=True)
+        st.image(page_img, width="stretch")
         pdf_slice_bytes = extract_pdf_pages(filename, [selected_page])
         if pdf_slice_bytes:
             stem = Path(filename).stem
@@ -329,7 +329,7 @@ def show_policy_dialog(item: dict) -> None:
                 file_name=f"{stem}_page_{selected_page}.pdf",
                 mime="application/pdf",
                 key=f"dl_{filename}_{selected_page}",
-                use_container_width=True,
+                width="stretch",
             )
     else:
         st.warning(f"Could not render image for page {selected_page} of {filename}.")
@@ -450,7 +450,7 @@ if st.session_state.messages and st.session_state.messages[-1].get("role") == "u
     # Active assistant response generation
     with st.chat_message("assistant", avatar=assistant_avatar):
         st.markdown('<div class="click-shield"></div>', unsafe_allow_html=True)
-        with st.spinner("Retrieving Navy recruiting instructions…"):
+        with st.spinner("Reviewing Navy policies…"):
             # Guarantee strict alternating turns (user/assistant) in model input
             sanitized_history = []
             for m in st.session_state.messages[:-1]:

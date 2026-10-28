@@ -18,37 +18,58 @@ from navy_rag.config import settings
 logger = logging.getLogger(__name__)
 
 
+_EMBEDDINGS_CACHE: dict[str, Embeddings] = {}
+_VECTORSTORE_CACHE: dict[str, Chroma] = {}
+
+
+def clear_vectorstore_cache() -> None:
+    """Clear cached vector store and embeddings client instances."""
+    _VECTORSTORE_CACHE.clear()
+    _EMBEDDINGS_CACHE.clear()
+
+
 def _build_embeddings() -> Embeddings:
+    cache_key = f"{settings.embedding_provider}_{settings.embedding_model}"
+    if cache_key in _EMBEDDINGS_CACHE:
+        return _EMBEDDINGS_CACHE[cache_key]
+
     if settings.embedding_provider == "google":
         from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
-        return GoogleGenerativeAIEmbeddings(
+        inst = GoogleGenerativeAIEmbeddings(
             model=settings.embedding_model,
             google_api_key=settings.google_api_key,
         )
-
-    if settings.embedding_provider == "openai":
+    elif settings.embedding_provider == "openai":
         from langchain_openai import OpenAIEmbeddings
 
-        return OpenAIEmbeddings(model=settings.embedding_model)
-
-    if settings.embedding_provider == "huggingface":
+        inst = OpenAIEmbeddings(model=settings.embedding_model)
+    elif settings.embedding_provider == "huggingface":
         from langchain_community.embeddings import HuggingFaceEmbeddings
 
-        return HuggingFaceEmbeddings(model_name=settings.embedding_model)
+        inst = HuggingFaceEmbeddings(model_name=settings.embedding_model)
+    else:
+        raise ValueError(f"Unsupported embedding provider: {settings.embedding_provider}")
 
-    raise ValueError(f"Unsupported embedding provider: {settings.embedding_provider}")
+    _EMBEDDINGS_CACHE[cache_key] = inst
+    return inst
 
 
 def get_vectorstore() -> Chroma:
-    """Return a Chroma client bound to the configured persistent directory."""
+    """Return a cached Chroma client bound to the configured persistent directory."""
+    cache_key = f"{settings.chroma_db_dir}_{settings.chroma_collection}"
+    if cache_key in _VECTORSTORE_CACHE:
+        return _VECTORSTORE_CACHE[cache_key]
+
     client = chromadb.PersistentClient(path=str(settings.chroma_db_dir))
     embeddings = _build_embeddings()
-    return Chroma(
+    store = Chroma(
         client=client,
         collection_name=settings.chroma_collection,
         embedding_function=embeddings,
     )
+    _VECTORSTORE_CACHE[cache_key] = store
+    return store
 
 
 def generate_chunk_id(chunk: Document) -> str:

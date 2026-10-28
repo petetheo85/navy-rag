@@ -78,6 +78,7 @@ def generate_grounded(state: RAGState) -> dict:
         state["question"],
         audience=state.get("audience"),
         chat_history=state.get("chat_history", []),
+        docs=state.get("retrieved_docs"),
     )
     if not result["sources"]:
         logger.info("No sources cited from context; routing to recruiter referral")

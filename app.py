@@ -13,6 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from navy_rag.chain.graph import run_graph
 from navy_rag.config import settings
@@ -39,6 +40,9 @@ if "pending_question" not in st.session_state:
 
 if "is_generating" not in st.session_state:
     st.session_state.is_generating = False
+
+if "collapse_sidebar" not in st.session_state:
+    st.session_state.collapse_sidebar = False
 
 # Clean up any trailing unfulfilled user message from an interrupted rerun
 while st.session_state.messages and st.session_state.messages[-1].get("role") == "user":
@@ -109,6 +113,7 @@ with st.sidebar:
         for i, q in enumerate(examples):
             if st.button(q, key=f"ex_{i}", width="stretch", disabled=is_busy):
                 st.session_state.pending_question = q
+                st.session_state.collapse_sidebar = True
 
     # Distinct Reset Briefing Button
     if st.button(
@@ -401,6 +406,31 @@ if user_input := st.chat_input(
 # Append user prompt to state before rendering
 if new_prompt and not is_busy:
     st.session_state.messages.append({"role": "user", "content": new_prompt})
+
+if st.session_state.get("collapse_sidebar"):
+    st.session_state.collapse_sidebar = False
+    components.html(
+        """
+        <script>
+        (function() {
+            try {
+                if (window.parent.innerWidth < 992) {
+                    const doc = window.parent.document;
+                    const btn = doc.querySelector('[data-testid="stSidebarCollapseButton"] button')
+                             || doc.querySelector('[data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button')
+                             || doc.querySelector('button[aria-label="Close sidebar"]')
+                             || doc.querySelector('[data-testid="stBaseButton-headerNoPadding"]');
+                    if (btn) {
+                        btn.click();
+                    }
+                }
+            } catch (e) {}
+        })();
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
 
 
 # Initial briefing card (shown before any user turns)

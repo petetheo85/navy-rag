@@ -98,10 +98,14 @@ def invoke_rag(
     *,
     audience: str | None = None,
     chat_history: list | None = None,
+    docs: list[Document] | None = None,
 ) -> dict:
     """Execute synchronous grounded generation for a single query."""
-    retriever = get_retriever(audience=audience)
-    retrieved_docs = retriever.invoke(question)
+    if docs is not None:
+        retrieved_docs = docs
+    else:
+        retriever = get_retriever(audience=audience)
+        retrieved_docs = retriever.invoke(question)
 
     context = _format_context(retrieved_docs)
     llm = get_llm()

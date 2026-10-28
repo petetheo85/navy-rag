@@ -11,10 +11,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install python dependencies into an isolated virtual environment
 COPY pyproject.toml ./
 
-# Bootstrap empty package so pip resolves and builds all third-party dependencies
-RUN mkdir -p src/navy_rag && touch src/navy_rag/__init__.py && \
-    python -m venv /opt/venv && \
+# Pre-install CPU-only PyTorch to avoid downloading 2.5GB of unused NVIDIA CUDA GPU binaries
+RUN python -m venv /opt/venv && \
     /opt/venv/bin/pip install --no-cache-dir --upgrade pip && \
+    /opt/venv/bin/pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
+    mkdir -p src/navy_rag && touch src/navy_rag/__init__.py && \
     /opt/venv/bin/pip install --no-cache-dir .
 
 # Copy full application source code and install package without reinstalling dependencies

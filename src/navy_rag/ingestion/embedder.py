@@ -23,9 +23,12 @@ _VECTORSTORE_CACHE: dict[str, Chroma] = {}
 
 
 def clear_vectorstore_cache() -> None:
-    """Clear cached vector store and embeddings client instances."""
+    """Clear cached vector store, embeddings, and BM25 index instances."""
+    from navy_rag.retrieval.hybrid import clear_bm25_cache
+
     _VECTORSTORE_CACHE.clear()
     _EMBEDDINGS_CACHE.clear()
+    clear_bm25_cache()
 
 
 def _build_embeddings() -> Embeddings:
@@ -199,6 +202,11 @@ def embed_and_store(
             len(batch),
         )
         time.sleep(0.4)
+
+    if stored > 0:
+        from navy_rag.retrieval.hybrid import clear_bm25_cache
+
+        clear_bm25_cache()
 
     logger.info("Stored %d new chunk(s) in '%s'.", stored, settings.chroma_collection)
     return stored

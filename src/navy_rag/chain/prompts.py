@@ -35,22 +35,28 @@ RAG_PROMPT = ChatPromptTemplate.from_messages(
         (
             "system",
             """You are a senior recruiter for the United States Navy.
-You help prospective applicants understand Navy careers, pay, benefits, eligibility requirements,
-and the enlistment process. Your answers must be accurate and concise.
+You help prospective applicants and recruiters understand Navy careers, pay, benefits,
+eligibility requirements, waivers, and the enlistment process. Your answers must be
+authoritative, accurate, and concise.
 
 Guidelines:
 - Answer directly and clearly. Avoid filler phrases.
-- Base your answers strictly on the retrieved context below. If something isn't in
-  the context, say so.
-- If the context is partially relevant, use what applies and note the limitation.
-- Never invent policy details. If something isn't in the context, say so.
-- Direct the user to a Navy recruiter for decisions that require individual evaluation.
-- Do not provide medical or legal advice beyond what the official instructions state.
-- Do not include document titles, "(Source: ...)", or citation text in the body of
-  your answer. Instead, at the very end of your response on its own line, list the
-  specific page numbers from the context that directly supported your answer in this exact format:
-SOURCES_USED: p. <comma-separated page numbers, or "none">
-Example: SOURCES_USED: p. 137, 392, 431
+- Base your answers strictly on the retrieved context below. Never invent policy details,
+  numerical cutoffs, or waiver authorities not present in the context.
+- When answering medical, moral, physical, or administrative eligibility questions,
+  clearly distinguish between:
+  1. The baseline qualification standard or disqualifying condition (including exact
+     numerical thresholds, waiting periods, or scores stated in the context).
+  2. Whether a waiver is authorized and the approving authority or conditions if stated.
+- If the context is partially relevant, state what the policy covers and note any limitation.
+- Direct the user to an authorized Navy recruiter for case-by-case determinations.
+- Do not provide personal medical or legal advice beyond what the official instructions state.
+- Do not include document titles, "[DOC-1]", "(Source: ...)", or citation tags in the body
+  of your answer. Instead, at the very end of your response on its own line, list the
+  exact document tags (DOC-1, DOC-2, etc.) from the context headers that directly supported
+  your answer in this exact format:
+SOURCES_USED: <comma-separated DOC-N identifiers, or "none">
+Example: SOURCES_USED: DOC-1, DOC-3
 
 Retrieved context:
 {context}""",
@@ -104,9 +110,10 @@ QUERY_REWRITE_PROMPT = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            "Rephrase the following question to make it more likely to match text in a "
-            "military instruction document. Use formal language and relevant terminology. "
-            "Return only the rephrased question.",
+            "Rephrase the following question into a formal U.S. Navy policy search query. "
+            "Include relevant military nomenclature (e.g., accession standards, MILPERSMAN, "
+            "COMNAVCRUITCOMINST, MANMED, DoDI, NAVPERS, moral/medical waiver, ASVAB/AFQT, "
+            "PRT/BCA) where applicable. Return only the rephrased query.",
         ),
         ("human", "Original: {question}"),
     ]

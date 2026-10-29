@@ -181,3 +181,65 @@ class TestFilterSourcesAndCleanAnswer:
         answer, filtered = _filter_sources_and_clean_answer(raw_answer, sources)
         assert answer == "General statement without citations."
         assert filtered == sources
+
+    def test_filters_by_doc_id_preventing_same_page_collision(self):
+        raw_answer = "RE-4 is non-waiverable [DOC-1].\n\nSOURCES_USED: DOC-1"
+        sources = [
+            {"source": "MILPERSMAN 1133-020", "filename": "milpersman.pdf", "page": 2},
+            {"source": "DoDI 6130.03 Vol. 1", "filename": "dodi.pdf", "page": 2},
+        ]
+        answer, filtered = _filter_sources_and_clean_answer(raw_answer, sources)
+        assert answer == "RE-4 is non-waiverable."
+        assert len(filtered) == 1
+        assert filtered[0]["source"] == "MILPERSMAN 1133-020"
+
+
+class TestConsolidationAndEvaluation:
+    def test_consolidate_docs_merges_same_page_in_chunk_order(self):
+        from navy_rag.chain.rag_chain import _consolidate_docs_and_sources
+
+        d2 = Document(
+            page_content="Second half of table.",
+            metadata={"filename": "prt.pdf", "page": 4, "chunk_index": 11, "source": "PRT"},
+        )
+        d1 = Document(
+            page_content="First half of table.",
+            metadata={"filename": "prt.pdf", "page": 4, "chunk_index": 10, "source": "PRT"},
+        )
+        consolidated, sources = _consolidate_docs_and_sources([d2, d1])
+        assert len(consolidated) == 1
+        assert len(sources) == 1
+        assert consolidated[0].metadata["doc_ref"] == "DOC-1"
+        assert consolidated[0].page_content.startswith("First half of table.")
+        assert "Second half of table." in consolidated[0].page_content
+
+    def test_evaluate_retrieval_rejects_unmatched_hybrid_chunks(self):
+        from navy_rag.chain.graph import evaluate_retrieval
+
+        unmatched_docs = [
+            Document(
+                page_content="Completely unrelated culinary text.",
+                metadata={"bm25_hit": False, "rrf_score": 0.008},
+            ),
+            Document(
+                page_content="Another unrelated baking paragraph.",
+                metadata={"bm25_hit": False, "rrf_score": 0.007},
+            ),
+        ]
+        state = {
+            "question": "What are the Nuclear Field ASVAB requirements?",
+            "retrieved_docs": unmatched_docs,
+        }
+        assert evaluate_retrieval(state) == {"retrieval_sufficient": False}
+
+    def test_system_specs_retrievable_from_settings(self):
+        from navy_rag.config import settings
+
+        specs = settings.get_system_specs()
+        assert "model" in specs
+        assert "embeddings" in specs
+        assert "vector_store" in specs
+        assert "retrieval" in specs
+        assert "query_engine" in specs
+        assert "citations" in specs
+        assert "HYBRID RRF" in specs["retrieval"]

@@ -35,3 +35,5 @@ class HealthResponse(BaseModel):
     status: Literal["ok"] = "ok"
     llm_provider: str
     collection: str
+    retrieval_method: str = "hybrid"
+    system_specs: dict[str, str] = Field(default_factory=dict)

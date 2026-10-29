@@ -82,9 +82,9 @@ def register_subcommand(subparsers: argparse._SubParsersAction) -> None:
     parser.add_argument(
         "--method",
         type=str,
-        default="similarity",
-        choices=["similarity", "mmr"],
-        help="Retrieval method to benchmark (similarity vs mmr)",
+        default="hybrid",
+        choices=["hybrid", "similarity", "mmr"],
+        help="Retrieval method to benchmark (hybrid, similarity, or mmr)",
     )
     parser.add_argument(
         "--output",

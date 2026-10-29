@@ -19,6 +19,8 @@ from navy_rag.chain.prompts import (
 )
 from navy_rag.chain.rag_chain import invoke_rag
 from navy_rag.llm.provider import get_llm
+from navy_rag.retrieval.hybrid import tokenize_military_text
+from navy_rag.retrieval.query_processor import contextualize_followup_query
 from navy_rag.retrieval.retriever import get_retriever
 
 logger = logging.getLogger(__name__)
@@ -51,17 +53,37 @@ def classify_scope(state: RAGState) -> dict:
 
 
 def retrieve(state: RAGState) -> dict:
-    """Execute vector retrieval against configured audience index."""
+    """Execute contextualized hybrid retrieval against configured audience index."""
     retriever = get_retriever(audience=state.get("audience"))
-    docs = retriever.invoke(state["question"])
+    search_query = contextualize_followup_query(
+        state["question"],
+        state.get("chat_history", []),
+    )
+    docs = retriever.invoke(search_query)
     return {"retrieved_docs": docs}
 
 
 def evaluate_retrieval(state: RAGState) -> dict:
-    """Evaluate retrieval coverage against minimal threshold."""
+    """Evaluate retrieval coverage and lexical/hybrid relevance confidence."""
     docs = state.get("retrieved_docs", [])
-    sufficient = len(docs) >= 2
-    return {"retrieval_sufficient": sufficient}
+    if len(docs) < 2:
+        return {"retrieval_sufficient": False}
+
+    # When hybrid RRF metadata is present, verify that at least one retrieved chunk
+    # matched query terms or shares content tokens with the inquiry.
+    has_hybrid_meta = any("bm25_hit" in (d.metadata or {}) for d in docs)
+    if has_hybrid_meta:
+        if any((d.metadata or {}).get("bm25_hit") for d in docs):
+            return {"retrieval_sufficient": True}
+
+        query_tokens = set(tokenize_military_text(state.get("question", "")))
+        if query_tokens:
+            combined_text = " ".join(d.page_content for d in docs)
+            doc_tokens = set(tokenize_military_text(combined_text))
+            if not (query_tokens & doc_tokens):
+                return {"retrieval_sufficient": False}
+
+    return {"retrieval_sufficient": True}
 
 
 def reformulate_query(state: RAGState) -> dict:

@@ -95,10 +95,16 @@ class Settings(BaseSettings):
     chroma_collection: str = "navy_docs"
 
     # Retrieval parameters
-    retrieval_k: int = Field(default=5, gt=0)
-    retrieval_method: Literal["similarity", "mmr"] = "mmr"
-    mmr_fetch_k: int = Field(default=20, gt=0)
+    retrieval_k: int = Field(default=6, gt=0)
+    retrieval_method: Literal["hybrid", "mmr", "similarity"] = "hybrid"
+    mmr_fetch_k: int = Field(default=25, gt=0)
     mmr_lambda: float = Field(default=0.5, ge=0.0, le=1.0)
+    hybrid_dense_weight: float = Field(default=0.60, ge=0.0, le=1.0)
+    hybrid_bm25_weight: float = Field(default=0.40, ge=0.0, le=1.0)
+    hybrid_rrf_k: int = Field(default=60, gt=0)
+    max_chunks_per_doc: int = Field(default=3, gt=0)
+    query_expansion_enabled: bool = True
+    citation_mode: str = "DOC-ID"
 
     # Ingestion chunking
     chunk_size: int = Field(default=1000, gt=0)
@@ -106,6 +112,27 @@ class Settings(BaseSettings):
 
     allowed_audiences: list[str] = ["public", "internal"]
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+
+    def get_system_specs(self) -> dict[str, str]:
+        """Return structured system configuration metadata for status display."""
+        if self.retrieval_method == "hybrid":
+            w_d = int(round(self.hybrid_dense_weight * 100))
+            w_b = int(round(self.hybrid_bm25_weight * 100))
+            retrieval_label = f"HYBRID RRF {w_d}/{w_b} (k={self.retrieval_k})"
+            store_label = "ChromaDB + BM25"
+        else:
+            retrieval_label = f"{self.retrieval_method.upper()} (k={self.retrieval_k})"
+            store_label = "ChromaDB"
+
+        query_engine = "Lexicon + Rewrite" if self.query_expansion_enabled else "Standard"
+        return {
+            "model": self.llm_model,
+            "embeddings": self.embedding_model,
+            "vector_store": store_label,
+            "retrieval": retrieval_label,
+            "query_engine": query_engine,
+            "citations": f"Verified [{self.citation_mode}]",
+        }
 
     @model_validator(mode="after")
     def _validate_credentials(self) -> Settings:

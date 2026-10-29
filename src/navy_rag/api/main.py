@@ -44,6 +44,8 @@ async def health() -> HealthResponse:
     return HealthResponse(
         llm_provider=settings.llm_provider,
         collection=settings.chroma_collection,
+        retrieval_method=settings.retrieval_method,
+        system_specs=settings.get_system_specs(),
     )
 
 

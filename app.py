@@ -7,7 +7,10 @@ from __future__ import annotations
 
 import base64
 import html
+import math
+import re
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
@@ -44,11 +47,38 @@ if "is_generating" not in st.session_state:
 if "collapse_sidebar" not in st.session_state:
     st.session_state.collapse_sidebar = False
 
+if "quota_state" not in st.session_state:
+    st.session_state.quota_state = None
+
+# Evaluate dynamic server-derived quota cooldown state
+quota_state = st.session_state.get("quota_state")
+beacon_class = "specs-indicator"
+status_label = "System Online"
+is_throttled = False
+card_class_extra = ""
+
+if quota_state:
+    if quota_state.get("type") == "daily":
+        beacon_class = "specs-indicator-amber"
+        status_label = "Daily Quota Reached"
+        is_throttled = True
+        card_class_extra = "card-throttled"
+    elif quota_state.get("type") == "cooldown":
+        until = float(quota_state.get("until", 0))
+        remaining = int(math.ceil(until - time.time()))
+        if remaining > 0:
+            beacon_class = "specs-indicator-amber"
+            status_label = f"Quota Cooldown ({remaining}s)"
+            is_throttled = True
+            card_class_extra = "card-throttled"
+        else:
+            st.session_state.quota_state = None
+
 # Clean up any trailing unfulfilled user message from an interrupted rerun
 while st.session_state.messages and st.session_state.messages[-1].get("role") == "user":
     st.session_state.messages.pop()
 
-is_busy = bool(st.session_state.is_generating)
+is_busy = bool(st.session_state.is_generating) or is_throttled
 
 
 # Static asset helpers and theme loading
@@ -129,28 +159,37 @@ with st.sidebar:
         st.rerun()
 
     # Anchored sidebar footer: project disclaimer and system metadata
+    sys_specs = settings.get_system_specs()
     st.markdown(
         f"""
         <div class="sidebar-footer-anchor">
-            <div class="system-specs-card">
+            <div class="system-specs-card {card_class_extra}">
                 <div class="specs-header">
-                    <span class="specs-indicator"></span> System Online
+                    <span class="{beacon_class}"></span> {status_label}
                 </div>
                 <div class="specs-row">
                     <span class="specs-label">Model:</span>
-                    <span class="specs-val">{settings.llm_model}</span>
+                    <span class="specs-val">{sys_specs["model"]}</span>
                 </div>
                 <div class="specs-row">
                     <span class="specs-label">Embeddings:</span>
-                    <span class="specs-val">{settings.embedding_model}</span>
+                    <span class="specs-val">{sys_specs["embeddings"]}</span>
                 </div>
                 <div class="specs-row">
-                    <span class="specs-label">Vector Store:</span>
-                    <span class="specs-val">ChromaDB</span>
+                    <span class="specs-label">Index Store:</span>
+                    <span class="specs-val">{sys_specs["vector_store"]}</span>
                 </div>
                 <div class="specs-row">
                     <span class="specs-label">Retrieval:</span>
-                    <span class="specs-val">{settings.retrieval_method.upper()} (k={settings.retrieval_k})</span>
+                    <span class="specs-val">{sys_specs["retrieval"]}</span>
+                </div>
+                <div class="specs-row">
+                    <span class="specs-label">Query Engine:</span>
+                    <span class="specs-val">{sys_specs["query_engine"]}</span>
+                </div>
+                <div class="specs-row">
+                    <span class="specs-label">Citations:</span>
+                    <span class="specs-val">{sys_specs["citations"]}</span>
                 </div>
             </div>
             <p class="brand-disclaimer">* Unofficial demonstration project. Not affiliated with or endorsed by the U.S. Navy.</p>
@@ -397,8 +436,14 @@ def render_footer(scope: str, sources: list[dict], msg_idx: int = 0) -> None:
 new_prompt = st.session_state.pending_question
 st.session_state.pending_question = None
 
+chat_placeholder = (
+    "Demonstration quota cooling down… please wait for timer."
+    if is_throttled
+    else "Ask about enlistment standards, eligibility, waivers, or ratings…"
+)
+
 if user_input := st.chat_input(
-    "Ask about enlistment standards, eligibility, waivers, or ratings…",
+    chat_placeholder,
     disabled=is_busy,
 ):
     new_prompt = user_input
@@ -504,15 +549,34 @@ if st.session_state.messages and st.session_state.messages[-1].get("role") == "u
                 scope = result.get("scope", "")
             except Exception as exc:
                 print(f"QUERY ERROR: {type(exc).__name__}: {exc}", flush=True)
-                err_text = str(exc).lower()
+                raw_err = str(exc)
+                err_text = raw_err.lower()
                 if any(k in err_text for k in ("resource_exhausted", "429", "quota", "rate limit")):
-                    answer = (
-                        "**System Advisory: Demonstration Quota Limit Reached**\n\n"
-                        "This is an independent, unfunded demonstration project and has temporarily "
-                        "reached its automated inquiry verification threshold.\n\n"
-                        "Please pause for 30–60 seconds and submit your inquiry again, or consult with an authorized "
-                        "Navy Recruiter for immediate guidance."
-                    )
+                    is_daily = any(k in err_text for k in ("per day", "daily"))
+                    if is_daily:
+                        st.session_state.quota_state = {"type": "daily", "until": None}
+                        answer = (
+                            "**System Advisory: Daily Demonstration Quota Limit Reached**\n\n"
+                            "This independent demonstration project has reached its daily automated inquiry "
+                            "threshold. Inquiries will resume tomorrow, or you can consult with an authorized "
+                            "Navy Recruiter for immediate guidance."
+                        )
+                    else:
+                        delay_match = re.search(r"retry in (\d+(?:\.\d+)?)s", raw_err, re.IGNORECASE)
+                        cooldown_secs = (
+                            float(delay_match.group(1)) + 2.0 if delay_match else 45.0
+                        )
+                        st.session_state.quota_state = {
+                            "type": "cooldown",
+                            "until": time.time() + cooldown_secs,
+                        }
+                        wait_display = int(round(cooldown_secs))
+                        answer = (
+                            "**System Advisory: Demonstration Quota Limit Reached**\n\n"
+                            "This independent demonstration project has temporarily paused automated verifications "
+                            f"to comply with rate limits. Please wait {wait_display} seconds and submit your inquiry "
+                            "again, or consult with an authorized Navy Recruiter."
+                        )
                 else:
                     answer = (
                         "**System Advisory: Knowledge Base Temporarily Unavailable**\n\n"

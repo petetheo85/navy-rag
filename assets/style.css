@@ -222,7 +222,7 @@ footer {
 [data-testid="stSidebar"] [data-testid="stElementContainer"].st-key-sidebar_questions {
     flex: 1 1 0% !important;
     min-height: 60px !important;
-    max-height: calc(100vh - 465px) !important;
+    max-height: calc(100vh - 495px) !important;
     display: flex !important;
     flex-direction: column !important;
     margin-bottom: 6px !important;
@@ -232,7 +232,7 @@ footer {
 [data-testid="stSidebar"] .st-key-sidebar_questions {
     flex: 1 1 0% !important;
     height: 100% !important;
-    max-height: calc(100vh - 465px) !important;
+    max-height: calc(100vh - 495px) !important;
     min-height: 60px !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
@@ -480,6 +480,72 @@ footer {
         box-shadow: 0 0 6px rgba(0, 255, 102, 0);
     }
 
+    100% {
+        transform: translate(-50%, -50%) scale(2.4);
+        opacity: 0;
+    }
+}
+
+.specs-indicator-amber {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: #FFB300;
+    display: inline-block;
+    position: relative;
+    box-shadow: 0 0 5px #FFB300;
+    animation: radar-core-blink-amber 1.2s infinite ease-out;
+}
+
+.specs-indicator-amber::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    border: 1.2px solid #FFC107;
+    box-sizing: border-box;
+    transform: translate(-50%, -50%) scale(1);
+    animation: radar-ping-sweep-amber 1.2s infinite ease-out;
+    pointer-events: none;
+}
+
+.system-specs-card.card-throttled {
+    border-color: rgba(255, 179, 0, 0.45) !important;
+    background: rgba(30, 22, 1, 0.70) !important;
+}
+
+@keyframes radar-core-blink-amber {
+    0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 6px #FFC107, 0 0 2px #FFFFFF;
+        filter: brightness(1.25);
+    }
+    15% {
+        opacity: 0.85;
+        box-shadow: 0 0 5px #FFB300;
+        filter: brightness(1.1);
+    }
+    35%, 85% {
+        opacity: 0.40;
+        box-shadow: 0 0 2px #FFB300;
+        filter: brightness(1);
+    }
+}
+
+@keyframes radar-ping-sweep-amber {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+        box-shadow: 0 0 4px #FFC107;
+    }
+    40% {
+        transform: translate(-50%, -50%) scale(2.4);
+        opacity: 0;
+        box-shadow: 0 0 6px rgba(255, 193, 7, 0);
+    }
     100% {
         transform: translate(-50%, -50%) scale(2.4);
         opacity: 0;

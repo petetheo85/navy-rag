@@ -1,251 +1,160 @@
 # Navy RAG: Recruiting Intelligence
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Google%20Cloud%20Run-4285F4?logo=googlecloud&logoColor=white)](https://navy-rag-676509381448.us-central1.run.app)
+[![Live Demo](https://img.shields.io/badge/Demo-Google%20Cloud%20Run-4285F4?logo=googlecloud&logoColor=white)](https://navy-rag-676509381448.us-central1.run.app)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![LangGraph](https://img.shields.io/badge/orchestration-LangGraph-purple.svg)](https://github.com/langchain-ai/langgraph)
-[![ChromaDB](https://img.shields.io/badge/vectorstore-ChromaDB-orange.svg)](https://www.trychroma.com/)
-[![FastAPI](https://img.shields.io/badge/API-FastAPI-green.svg)](https://fastapi.tiangolo.com/)
-[![Streamlit](https://img.shields.io/badge/UI-Streamlit-red.svg)](https://streamlit.io/)
 
-A retrieval-augmented generation (RAG) system for U.S. Navy recruiting questions, backed by published Navy instructions and recruiting regulations. Designed to assist prospective applicants and recruiters with inquiries regarding enlistment standards, moral and medical waivers, tattoo policies, and rating requirements through verified policy citations.
+A retrieval-augmented generation system for U.S. Navy recruiting intelligence, built with Google Gemini, LangGraph, and ChromaDB. Grounded in authoritative naval directives (COMNAVCRUITCOMINST, MILPERSMAN, MANMED, DoDI, and NAVPERS uniform regulations) to provide answers with page-level citations for recruiters and applicants.
 
-> **Live Application:** Access the Navy Recruiter Intelligence System running on Google Cloud Run: [https://navy-rag-676509381448.us-central1.run.app](https://navy-rag-676509381448.us-central1.run.app)
-
-> ⚠️ **Project Status & Disclaimer:** This project is an active engineering prototype under development. The core orchestration, retrieval engine, and user interfaces are implemented, while document corpus expansion and integration testing across external tool protocols (MCP) remain ongoing. This is an unofficial demonstration project and is not affiliated with or endorsed by the U.S. Navy or the Department of Defense.
+> **Disclaimer:** Unofficial demonstration system. Not affiliated with, endorsed by, or representing the U.S. Navy or the Department of Defense. Official policy inquiries must be verified through authorized recruiting and command channels.
 
 ---
 
-## Architecture Overview
+## Technical Architecture
 
 ```
-User / MCP Client
-       │
-       ▼
-FastAPI (/docs)  ←──→  Streamlit Web UI
-       │
-       ▼
-LangGraph Agentic State Machine
-  ├── Scope Classification (in-scope vs. out-of-scope)
-  ├── Dense & MMR Retrieval (ChromaDB)
-  ├── Retrieval Evaluation & Query Reformulation
-  ├── Grounded Synthesis (Gemini / OpenAI / Anthropic)
-  └── Citation Verification & Recruiter Referral Fallback
+User Inquiry
+     │
+     ▼
+Streamlit Web UI / FastAPI
+     │
+     ▼
+LangGraph Agent State Machine
+  ├── Scope Evaluation (recruiting policy vs. out-of-scope deflection)
+  ├── Lexicon Expansion (military acronyms & conversational context)
+  ├── Hybrid Dense + BM25 Retrieval (Weighted RRF with directive diversity)
+  ├── Lexical Grounding Check (relevance verification & referral routing)
+  └── Grounded Generation (deterministic [DOC-N] page-level citations)
 ```
 
-### Key Engineering Decisions
+---
 
-| Component | Technology | Rationale |
+## Engineering Decisions & Trade-Offs
+
+### 1. Corpus Skew and Hybrid Retrieval (Dense + BM25 RRF)
+The indexed corpus contains 18 core policy directives, 49 crawled MILPERSMAN articles, and 7 compiled NAVPERS 15665J chapters (12,424 total chunks).
+
+Two manuals alone—`NAVPERS 18068F` Volumes I and II—account for 6,206 chunks (50.0% of the entire vector database). Under pure dense vector search, high-dimensional cosine similarity suffered from vector hubness: queries regarding niche medical disqualifications or reenlistment codes were frequently crowded out by occupational classification pages.
+
+To resolve this:
+- **Weighted Reciprocal Rank Fusion (RRF):** Dense vector similarity ($0.60$ weight) is fused with metadata-enriched BM25 keyword matching ($0.40$ weight).
+- **Top-3 Directive Diversity:** The retriever enforces that no single directive can occupy more than one slot in the top-3 results, capping subsequent slots at 3 chunks per document.
+- **Military Lexicon Expansion:** Acronyms and designators (e.g., RE-3, MEPS, PRT, CWT, BUMED) are deterministically expanded into their authoritative directive titles before retrieval.
+
+### 2. Automated Policy Synchronization (`navy-rag sync`)
+Naval instructions update at different intervals. Recruiting manuals update frequently via policy letters, while MILPERSMAN articles change through formal quarterly transmittals.
+
+- **Tiered Cadence:** Directives are categorized into synchronization cadences (`weekly`, `monthly`, `quarterly`).
+- **HTTP Conditional Probing:** Instead of re-downloading PDFs, the sync engine sends HTTP `HEAD` requests checking `ETag`, `Last-Modified`, and `Content-Length` headers against an audit manifest (`_ingestion_manifest.json`). Unchanged directives are verified in <100ms.
+- **Hash-Aware Differential Re-Indexing:** When an upstream directive changes, its incoming `SHA-256` hash is compared against the stored chunk metadata in ChromaDB. Old chunks for that specific document are atomically purged and re-embedded without re-processing the remaining corpus.
+- **GitOps Regression Gate:** A weekly GitHub Actions workflow (`.github/workflows/policy-sync.yml`) runs the sync engine. If policy updates are detected, it runs the test suite and evaluation benchmark before committing changes and triggering Cloud Build.
+
+### 3. Zero-Cost Stateless Deployment
+- **Bundled Vector Store:** ChromaDB and raw source directives are packaged directly inside the Docker container image. This eliminates cold-start network roundtrips to an external vector database and avoids monthly infrastructure costs.
+- **CUDA Pruning:** Multi-stage Docker builds pre-install CPU-only PyTorch wheels and strip unused NVIDIA CUDA runtime binaries, reducing the final container image from 4.39 GB down to 1.58 GB.
+- **Cloud Run Concurrency:** The container runs on Google Cloud Run with `--min-instances 0` and `--max-instances 1`, scaling to zero when idle for minimal hosting expense.
+
+---
+
+## Evaluation Benchmark
+
+The retrieval engine is verified against a 50-query golden ground truth dataset (`data/evals/golden_dataset.yaml`) covering enlistment qualifications, medical disqualifications, tattoo regulations, physical readiness tables, ASVAB line scores, and moral waivers.
+
+| Metric | Baseline (MMR) | Hybrid RRF (Current) |
 |---|---|---|
-| **Orchestration** | LangGraph + LCEL | Stateful routing, conditional retries, and strict verification loops rather than brittle linear chains. |
-| **Model Portability** | Multi-Provider via `init_chat_model` | Decoupled provider abstraction enabling hot-swapping between Gemini, OpenAI, and Anthropic via configuration. |
-| **Vector Storage** | ChromaDB (Local / Embedded) | Zero-infrastructure local vector storage with metadata filtering by audience and instruction source. |
-| **Batch Processing** | PySpark *(Optional)* | Parallelized text extraction and chunking for handling large multi-hundred-page military instruction PDFs. |
-| **Agent Protocol** | FastMCP (Model Context Protocol) | Exposes internal knowledge retrieval and document metadata inspection as standardized tools for Claude Desktop and Cursor. |
-| **Frontend** | Streamlit + Custom CSS | Custom CNRC-compliant design system providing a branded interface with verified citation inspection. |
+| **Recall@3** | 86.0% | **100.0%** |
+| **Recall@5** | 92.0% | **100.0%** |
+| **MRR (Mean Reciprocal Rank)** | 0.860 | **0.933** |
 
----
-
-## Guardrails & Agentic Workflow
-
-Unlike naive RAG pipelines that blindly retrieve and answer, this system enforces policy guardrails via a deterministic LangGraph workflow:
-
-1. **Scope Classification:** Evaluates incoming questions before retrieval. Out-of-scope inquiries (e.g., general trivia, unrelated defense topics) are gracefully deflected without executing vector search.
-2. **Evaluation & Reformulation:** If initial retrieval returns insufficient context, the query is rewritten into formal military terminology for a second retrieval attempt.
-3. **Citation Anchoring:** The LLM is constrained to cite specific document page numbers. Responses that fail citation verification or lack explicit policy groundings are routed to a standardized recruiter referral fallback.
-
----
-
-## Quickstart
-
-### 1. Installation
-
+Run the benchmark locally:
 ```bash
-git clone https://github.com/petetheo85/navy-rag.git
-cd navy-rag
-
-# Create and activate virtual environment
-python -m venv venv && source venv/bin/activate
-
-# Install package and development dependencies
-pip install -e ".[dev]"
-```
-
-### 2. Environment Configuration
-
-Copy the sample environment file and configure your API keys:
-
-```bash
-cp .env.example .env
-```
-
-At minimum, provide an API key for your chosen provider (defaults to Google Gemini):
-```bash
-GOOGLE_API_KEY=your_google_api_key_here
-```
-
-### 3. Ingestion
-
-Instruction PDFs are stored by audience classification in `data/public/` (applicant-facing) and `data/internal/` (recruiter-specific).
-
-Run the ingestion pipeline to parse, chunk, and embed documents into ChromaDB:
-
-```bash
-# Bronze layer download from authoritative .mil policy manifest
-navy-rag download
-
-# One-step acquisition: download manifest directives AND run sub-corpora crawlers
-navy-rag download --all
-
-# Or run individual crawlers selectively:
-navy-rag crawl-milpersman
-navy-rag crawl-uniforms
-
-# Standard local ingestion into ChromaDB
-navy-rag ingest
-
-# Batch processing via PySpark for larger corpora
-navy-rag ingest --spark --parallelism 4
-
-# Run evaluation benchmark against 50 ground truth inquiries
 navy-rag eval
 ```
 
 ---
 
-## Running the Application
+## Quickstart
 
-### Streamlit Web Dashboard
-Launches the interactive recruiting intelligence interface with source citation badges and system status indicators:
+### 1. Setup
+
+```bash
+git clone https://github.com/petetheo85/navy-rag.git
+cd navy-rag
+
+python -m venv venv && source venv/bin/activate
+pip install -e ".[dev]"
+```
+
+Configure your API key:
+```bash
+cp .env.example .env
+```
+Edit `.env` and set:
+```bash
+GOOGLE_API_KEY=your_gemini_api_key
+```
+
+### 2. Run the Web Application
 ```bash
 streamlit run app.py
 ```
+Includes dynamic Gemini quota cooldown monitoring, system configuration inspection, and PDF excerpt preview.
 
-### FastAPI Backend
-Provides REST endpoints and token streaming with interactive OpenAPI documentation available at `http://127.0.0.1:8000/docs`:
-```bash
-uvicorn navy_rag.api.main:app --host 127.0.0.1 --port 8000
-```
-- `POST /api/chat`: Process inquiries with optional streaming (`stream=true`).
-- `GET /api/health`: Health check and active collection metadata.
-- `POST /api/ingest`: Trigger on-demand document indexing.
+*(Optional headless API server: `uvicorn navy_rag.api.main:app --host 127.0.0.1 --port 8000`)*
 
-### MCP Server (Claude Desktop / Cursor)
-Exposes the RAG system as a standardized Model Context Protocol tool provider:
-```bash
-python -m navy_rag.mcp.server
-```
-
-**Claude Desktop Configuration (`claude_desktop_config.json`):**
-```json
-{
-  "mcpServers": {
-    "navy-rag": {
-      "command": "python",
-      "args": ["-m", "navy_rag.mcp.server"],
-      "cwd": "/path/to/navy-rag",
-      "env": {
-        "GOOGLE_API_KEY": "your_api_key_here"
-      }
-    }
-  }
-}
-```
-
-**Available MCP Tools:**
-- `search_navy_instructions`: Policy inquiry tool returning grounded answers with page-level citations.
-- `list_available_topics`: Catalog of covered policy areas (waivers, ASVAB, ratings, pay).
-- `get_suggested_inquiries`: Common sample inquiries matching the recruiting dashboard.
-- `get_document_summary`: Metadata lookup and text preview for specific instruction documents.
-
----
-
-## LLM Provider Switching
-
-Switch model providers cleanly in `.env` without altering application code:
+### 3. Core Commands
 
 ```bash
-# Google Gemini (Default)
-LLM_PROVIDER=google_genai
-LLM_MODEL=gemini-3.5-flash-lite
+# Automated differential sync (respects weekly/monthly/quarterly cadences)
+navy-rag sync --respect-cadence
 
-# OpenAI
-LLM_PROVIDER=openai
-LLM_MODEL=gpt-4o-mini
+# Probe all upstream directives and run web crawlers immediately
+navy-rag sync --all
 
-# Anthropic
-LLM_PROVIDER=anthropic
-LLM_MODEL=claude-3-5-haiku-latest
+# Dry-run upstream check without writing files or modifying database
+navy-rag sync --dry-run
+
+# Run the 50-query retrieval benchmark
+navy-rag eval
+
+# Run test suite and linter
+pytest tests/
+ruff check src/ tests/ app.py
 ```
 
 ---
 
-## Testing & Quality Assurance
-
-Unit and regression tests mock external API calls to enable fast, offline execution:
-
-```bash
-# Run test suite
-pytest tests/ -v
-
-# Run with test coverage report
-pytest tests/ --cov=src/navy_rag --cov-report=term-missing
-```
-
-Code formatting and linting are configured with Ruff:
-```bash
-ruff check .
-```
-
----
-
-## Policy Crawlers & Evaluation Benchmarks
-
-- [x] **MILPERSMAN Automated Crawler:** Batch crawler discovering and indexing recruiting policy articles (`1100` series) directly from MyNavy HR (`navy-rag crawl-milpersman`).
-- [x] **NAVPERS 15665J Chapter Typesetter:** Recursive Table of Contents scraper converting online Navy Uniform Regulations (Chapters 1–7) into authentic military directive PDFs (`navy-rag crawl-uniforms`).
-- [x] **Evaluation Benchmark Suite:** 50-query verified ground truth dataset spanning medical, grooming, moral waivers, PRT, ASVAB, and accessions with Recall@K and MRR scoring (`navy-rag eval`).
-- [ ] **Automated Policy Synchronization:** Weekly cron drift detection checking upstream ETags/hashes (`docs/TODO.md`).
-
----
-
-## Project Structure
+## Repository Structure
 
 ```
 navy-rag/
+├── .github/workflows/
+│   └── policy-sync.yml         # Scheduled & manual GitHub Actions sync pipeline
 ├── src/navy_rag/
-│   ├── config.py               # Centralized Pydantic Settings
-│   ├── llm/provider.py         # Multi-provider LLM factory (Gemini, OpenAI, Anthropic)
+│   ├── config.py               # Pydantic Settings & system configuration specs
+│   ├── llm/provider.py         # Google Gemini chat model initialization
 │   ├── ingestion/
-│   │   ├── loader.py           # Document loading and metadata normalization
-│   │   ├── chunker.py          # Character and token-aware text splitting
-│   │   ├── embedder.py         # ChromaDB vector store client & embedding manager
-│   │   ├── spark_processor.py  # PySpark parallelized batch ingestion
-│   │   └── crawlers/           # Recursive MILPERSMAN & Uniform Regulations scrapers
-│   ├── retrieval/retriever.py  # Dense and MMR retrieval with audience filtering
+│   │   ├── downloader.py       # Bronze-layer downloader & HTTP conditional probing
+│   │   ├── loader.py           # PDF loader, metadata normalization & SHA-256
+│   │   ├── chunker.py          # Token-aware recursive text chunking
+│   │   ├── embedder.py         # ChromaDB client & hash-aware differential re-indexing
+│   │   ├── sync.py             # Differential policy sync orchestrator
+│   │   └── crawlers/           # MILPERSMAN and NAVPERS 15665J web scrapers
+│   ├── retrieval/
+│   │   ├── retriever.py        # Retriever factory with audience filtering
+│   │   ├── hybrid.py           # Weighted RRF retriever & directive diversity cap
+│   │   └── query_processor.py  # Lexicon query expander & conversational contextualizer
 │   ├── chain/
 │   │   ├── prompts.py          # Grounded and classification prompt templates
-│   │   ├── rag_chain.py        # LCEL retrieval chain & streaming handlers
+│   │   ├── rag_chain.py        # LCEL retrieval chain & [DOC-N] citation attribution
 │   │   └── graph.py            # LangGraph state machine & guardrail routing
 │   ├── evals/                  # Quantitative benchmark scoring (Recall@K, MRR)
-│   │   ├── models.py           # Evaluation Pydantic schemas
-│   │   └── evaluator.py        # Benchmark query runner and metric aggregator
-│   ├── cli/
-│   │   ├── main.py             # Unified CLI entry point (`navy-rag`)
-│   │   ├── download.py         # Bronze download subcommand (`navy-rag download`)
-│   │   ├── crawl_milpersman.py # MILPERSMAN crawler (`navy-rag crawl-milpersman`)
-│   │   ├── crawl_uniforms.py   # Uniforms typesetter (`navy-rag crawl-uniforms`)
-│   │   ├── ingest.py           # Document ingestion subcommand (`navy-rag ingest`)
-│   │   └── eval.py             # Evaluation benchmark (`navy-rag eval`)
-│   ├── api/
-│   │   ├── main.py             # FastAPI application and route handlers
-│   │   └── models.py           # Pydantic request and response schemas
-│   └── mcp/server.py           # FastMCP server for IDE and desktop agent integration
-├── assets/                     # America's Navy design system & static assets
-│   ├── style.css               # CNRC brand CSS styling and layout rules
-│   └── *.png                   # Brand graphics and iconography
+│   ├── cli/                    # CLI subcommands registered in main.py
+│   └── api/                    # Optional FastAPI headless route handlers
+├── assets/                     # Design system assets and custom CSS
 ├── data/
-│   ├── manifests/              # Declarative Bronze corpus manifest (YAML)
-│   ├── evals/                  # Golden dataset 50-query benchmark
-│   └── raw/                    # Immutable source PDFs & crawled sub-corpora
+│   ├── manifests/              # Declarative corpus manifest (YAML)
+│   ├── evals/                  # 50-query golden benchmark dataset
+│   └── raw/                    # Source directives and crawled sub-corpora
 ├── app.py                      # Streamlit interactive application
-└── tests/                      # Pytest suite
+└── tests/                      # Pytest test suite
 ```

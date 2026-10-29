@@ -1,0 +1,157 @@
+name: Automated Policy Sync
+
+on:
+  schedule:
+    # Run every Monday at 06:00 UTC; tiered cadences (weekly/monthly/quarterly)
+    # determine which directives and crawlers are due for upstream probing.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      cadence_mode:
+        description: "Cadence mode (respect-cadence checks only due tiers; all-now probes all)"
+        required: true
+        default: "respect-cadence"
+        type: choice
+        options:
+          - "respect-cadence"
+          - "all-now"
+          - "weekly"
+          - "monthly"
+          - "quarterly"
+      include_crawlers:
+        description: "Include MILPERSMAN (quarterly) and Uniform Regs (monthly) crawlers"
+        required: false
+        default: true
+        type: boolean
+      dry_run:
+        description: "Dry run only (probe upstream headers without modifying files or index)"
+        required: false
+        default: false
+        type: boolean
+      force:
+        description: "Force full download and vector re-indexing"
+        required: false
+        default: false
+        type: boolean
+      deploy_on_change:
+        description: "Trigger Cloud Build deployment if policy updates are indexed"
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  policy-sync:
+    name: Differential Policy Sync & Index Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install CPU PyTorch and package dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+          pip install --no-cache-dir ".[dev]"
+
+      - name: Execute Differential Policy Sync
+        id: sync
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          FLAGS=("--output" "data/raw/_sync_report.json")
+
+          MODE="${{ github.event.inputs.cadence_mode || 'respect-cadence' }}"
+          if [ "$MODE" = "respect-cadence" ]; then
+            FLAGS+=("--respect-cadence")
+          elif [ "$MODE" = "weekly" ] || [ "$MODE" = "monthly" ] || [ "$MODE" = "quarterly" ]; then
+            FLAGS+=("--cadence" "$MODE")
+          fi
+
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event.inputs.include_crawlers }}" = "true" ]; then
+            FLAGS+=("--all")
+          fi
+
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            FLAGS+=("--dry-run")
+          fi
+
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            FLAGS+=("--force")
+          fi
+
+          navy-rag sync "${FLAGS[@]}"
+
+          python - << 'EOF'
+          import json
+          import os
+          from pathlib import Path
+
+          report = json.loads(Path("data/raw/_sync_report.json").read_text(encoding="utf-8"))
+          changed = bool(
+              report.get("downloaded_docs")
+              or report.get("updated_docs")
+              or report.get("chunks_reindexed", 0) > 0
+          )
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+              fh.write(f"has_changes={'true' if changed else 'false'}\n")
+              fh.write(f"updated_count={len(report.get('updated_docs', []))}\n")
+              fh.write(f"downloaded_count={len(report.get('downloaded_docs', []))}\n")
+              fh.write(f"chunks_reindexed={report.get('chunks_reindexed', 0)}\n")
+          EOF
+
+      - name: Upload Sync Telemetry Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: policy-sync-report
+          path: |
+            data/raw/_sync_report.json
+            data/raw/_ingestion_manifest.json
+          retention-days: 30
+
+      - name: Run Unit Test & Golden Evaluation Gate on Policy Change
+        if: steps.sync.outputs.has_changes == 'true' && github.event.inputs.dry_run != 'true'
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          pytest tests/
+          navy-rag eval --method hybrid
+
+      - name: Commit Updated Directives and Vector Index
+        if: steps.sync.outputs.has_changes == 'true' && github.event.inputs.dry_run != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/raw/ chroma_db/
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(corpus): sync upstream policy directives"
+            git push
+          fi
+
+      - name: Trigger Cloud Build Deployment on Policy Change
+        if: >-
+          steps.sync.outputs.has_changes == 'true' &&
+          github.event.inputs.dry_run != 'true' &&
+          github.event.inputs.deploy_on_change != 'false' &&
+          env.GCP_PROJECT_ID != '' &&
+          env.GCP_SA_KEY != ''
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          echo "$GCP_SA_KEY" > /tmp/gcp-key.json
+          gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
+          gcloud config set project "$GCP_PROJECT_ID"
+          gcloud builds submit --config cloudbuild.yaml .
+          rm -f /tmp/gcp-key.json

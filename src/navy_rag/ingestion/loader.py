@@ -17,6 +17,7 @@ from langchain_core.documents import Document
 from pypdf import PdfReader
 
 from navy_rag.config import settings
+from navy_rag.ingestion.downloader import compute_file_sha256
 
 logger = logging.getLogger(__name__)
 
@@ -148,11 +149,19 @@ def load_pdf(path: Path) -> list[Document]:
         or ""
     )
 
+    rel_path = (
+        str(path.relative_to(settings.base_dir))
+        if path.is_relative_to(settings.base_dir)
+        else str(path)
+    )
+    file_sha256 = compute_file_sha256(path) if path.is_file() else ""
+
     base_metadata = {
         "audience": audience,
         "source": title,
         "filename": path.name,
-        "filepath": str(path.relative_to(settings.base_dir)),
+        "filepath": rel_path,
+        "file_sha256": file_sha256,
         "instruction_number": instruction_number,
         "source_agency": manifest_meta.get("source_agency", ""),
         "doc_id": manifest_meta.get("doc_id", ""),
@@ -215,9 +224,15 @@ def discover_pdfs(data_dir: Path | None = None) -> list[Path]:
     return found
 
 
-def load_all(data_dir: Path | None = None) -> list[Document]:
-    """Discover and parse all PDFs across audience directories."""
+def load_all(
+    data_dir: Path | None = None,
+    *,
+    only_filenames: set[str] | None = None,
+) -> list[Document]:
+    """Discover and parse PDFs across audience directories, optionally filtered by filename."""
     pdfs = discover_pdfs(data_dir)
+    if only_filenames is not None:
+        pdfs = [p for p in pdfs if p.name in only_filenames]
     if not pdfs:
         logger.warning("No PDF documents discovered in %s", data_dir or settings.data_dir)
         return []

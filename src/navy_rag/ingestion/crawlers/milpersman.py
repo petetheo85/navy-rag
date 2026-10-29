@@ -121,24 +121,50 @@ def download_article(
     output_dir: Path,
     session: requests.Session,
     force: bool = False,
+    *,
+    check_upstream: bool = False,
 ) -> MilpersmanAuditRecord:
     """Download a single MILPERSMAN PDF idempotently with SHA-256 verification."""
     target_path = output_dir / article.filename
     timestamp = datetime.now(UTC).isoformat()
+    existing_sha256: str | None = None
 
-    if target_path.is_file() and not force:
+    if target_path.is_file():
         file_size = target_path.stat().st_size
-        file_sha256 = compute_file_sha256(target_path)
-        return MilpersmanAuditRecord(
-            article_number=article.article_number,
-            category=article.category,
-            url=article.url,
-            filename=article.filename,
-            file_size=file_size,
-            sha256=file_sha256,
-            timestamp=timestamp,
-            status="skipped",
-        )
+        existing_sha256 = compute_file_sha256(target_path)
+        if not force and not check_upstream:
+            return MilpersmanAuditRecord(
+                article_number=article.article_number,
+                category=article.category,
+                url=article.url,
+                filename=article.filename,
+                file_size=file_size,
+                sha256=existing_sha256,
+                timestamp=timestamp,
+                status="skipped",
+            )
+        if not force and check_upstream:
+            try:
+                head_resp = session.head(
+                    article.url,
+                    allow_redirects=True,
+                    timeout=_TIMEOUT_SECONDS,
+                )
+                headers = getattr(head_resp, "headers", None)
+                raw_cl = headers.get("Content-Length") if hasattr(headers, "get") else None
+                if isinstance(raw_cl, str) and raw_cl.isdigit() and int(raw_cl) == file_size:
+                    return MilpersmanAuditRecord(
+                        article_number=article.article_number,
+                        category=article.category,
+                        url=article.url,
+                        filename=article.filename,
+                        file_size=file_size,
+                        sha256=existing_sha256,
+                        timestamp=timestamp,
+                        status="skipped",
+                    )
+            except requests.RequestException:
+                pass
 
     try:
         resp = session.get(article.url, stream=True, timeout=_TIMEOUT_SECONDS)
@@ -151,10 +177,28 @@ def download_article(
 
         file_size = tmp_path.stat().st_size
         file_sha256 = compute_file_sha256(tmp_path)
+
+        if not force and existing_sha256 and file_sha256 == existing_sha256:
+            tmp_path.unlink(missing_ok=True)
+            return MilpersmanAuditRecord(
+                article_number=article.article_number,
+                category=article.category,
+                url=article.url,
+                filename=article.filename,
+                file_size=file_size,
+                sha256=file_sha256,
+                timestamp=timestamp,
+                status="skipped",
+            )
+
         tmp_path.replace(target_path)
+        status_val: Literal["downloaded", "updated"] = (
+            "updated" if existing_sha256 and existing_sha256 != file_sha256 else "downloaded"
+        )
 
         logger.info(
-            "Downloaded MILPERSMAN %s -> %s (%d bytes)",
+            "%s MILPERSMAN %s -> %s (%d bytes)",
+            status_val.capitalize(),
             article.article_number,
             target_path.name,
             file_size,
@@ -167,7 +211,7 @@ def download_article(
             file_size=file_size,
             sha256=file_sha256,
             timestamp=timestamp,
-            status="downloaded",
+            status=status_val,
         )
     except Exception as exc:
         logger.error("Failed downloading MILPERSMAN %s: %s", article.article_number, exc)
@@ -188,6 +232,8 @@ def crawl_milpersman(
     categories: list[str] | tuple[str, ...] | None = None,
     output_dir: Path | None = None,
     force: bool = False,
+    *,
+    check_upstream: bool = False,
 ) -> MilpersmanAuditManifest:
     """Crawl specified categories, download PDFs, and record audit manifest."""
     target_categories = list(categories) if categories else list(DEFAULT_CATEGORIES)
@@ -205,7 +251,13 @@ def crawl_milpersman(
             continue
 
         for art in articles:
-            rec = download_article(art, target_dir, session, force=force)
+            rec = download_article(
+                art,
+                target_dir,
+                session,
+                force=force,
+                check_upstream=check_upstream,
+            )
             records.append(rec)
 
     manifest = MilpersmanAuditManifest(

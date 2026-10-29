@@ -14,6 +14,8 @@ from navy_rag.api.models import (
     HealthResponse,
     IngestResponse,
     SourceDocument,
+    SyncRequest,
+    SyncResponse,
 )
 from navy_rag.chain.graph import run_graph
 from navy_rag.chain.rag_chain import stream_rag
@@ -100,4 +102,33 @@ async def ingest() -> IngestResponse:
     return IngestResponse(
         chunks_stored=stored,
         message=f"Ingestion complete. {stored} chunk(s) stored in '{settings.chroma_collection}'.",
+    )
+
+
+@app.post("/api/sync", response_model=SyncResponse, tags=["admin"])
+async def sync(request: SyncRequest | None = None) -> SyncResponse:
+    """Probe upstream directives by cadence and differentially re-index changed PDFs."""
+    from navy_rag.ingestion.sync import run_policy_sync
+
+    req = request or SyncRequest()
+    report = run_policy_sync(
+        include_crawlers=req.include_crawlers,
+        respect_cadence=req.respect_cadence,
+        cadence_filter=req.cadence_filter,
+        dry_run=req.dry_run,
+        force=req.force,
+    )
+    return SyncResponse(
+        checked_count=report.checked_count,
+        downloaded_docs=report.downloaded_docs,
+        updated_docs=report.updated_docs,
+        skipped_docs=report.skipped_docs,
+        deferred_by_cadence=report.deferred_by_cadence,
+        failed_docs=report.failed_docs,
+        chunks_reindexed=report.chunks_reindexed,
+        message=(
+            f"Sync complete: {len(report.updated_docs)} updated, "
+            f"{len(report.downloaded_docs)} downloaded, "
+            f"{report.chunks_reindexed} chunk(s) re-indexed."
+        ),
     )

@@ -60,6 +60,11 @@ class Settings(BaseSettings):
 
     @computed_field
     @property
+    def sync_report_path(self) -> Path:
+        return self.raw_data_dir / "_sync_report.json"
+
+    @computed_field
+    @property
     def certs_dir(self) -> Path:
         p = self.base_dir / "certs"
         p.mkdir(parents=True, exist_ok=True)
@@ -70,6 +75,16 @@ class Settings(BaseSettings):
     bronze_s3_bucket: str | None = None
     bronze_s3_prefix: str = "bronze/raw"
     download_timeout_seconds: int = Field(default=60, gt=0)
+    sync_cadence_days: dict[str, int] = Field(
+        default_factory=lambda: {
+            "daily": 1,
+            "weekly": 7,
+            "monthly": 30,
+            "quarterly": 90,
+        }
+    )
+    milpersman_sync_cadence: Literal["daily", "weekly", "monthly", "quarterly"] = "quarterly"
+    uniform_regs_sync_cadence: Literal["daily", "weekly", "monthly", "quarterly"] = "monthly"
 
     # Provider API keys
     google_api_key: str | None = None

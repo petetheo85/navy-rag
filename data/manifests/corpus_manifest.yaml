@@ -9,6 +9,7 @@ documents:
     change: 0
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "weekly"
     instruction_number: "COMNAVCRUITCOMINST 1130.8"
     title: "Navy Recruiting Manual - Enlisted"
     source_agency: "CNRC eToolbox"
@@ -23,6 +24,7 @@ documents:
     change: 0
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "weekly"
     instruction_number: "CNRC ERLMM"
     title: "Navy Enlisted Recruiting Leadership and Management Manual (ERLMM)"
     source_agency: "CNRC eToolbox"
@@ -37,6 +39,7 @@ documents:
     change: 0
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "weekly"
     instruction_number: "COMNAVCRUITCOMINST 1131.2"
     title: "Navy Recruiting Manual - Officer"
     source_agency: "CNRC eToolbox"
@@ -51,6 +54,7 @@ documents:
     change: 0
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "weekly"
     instruction_number: "CNRC ORLMM"
     title: "Navy Officer Recruiting Leadership and Management Manual (ORLMM)"
     source_agency: "CNRC eToolbox"
@@ -65,6 +69,7 @@ documents:
     change: 63
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "quarterly"
     instruction_number: "MILPERSMAN 1133-020"
     title: "MILPERSMAN 1133-020 - Enlistment and Accession Programs Policy"
     source_agency: "MyNavyHR"
@@ -79,6 +84,7 @@ documents:
     change: 4
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "monthly"
     instruction_number: "DoDI 1304.26"
     title: "Qualification Standards for Enlistment, Appointment, and Induction"
     source_agency: "DoD ESD WHS"
@@ -93,6 +99,7 @@ documents:
     change: 6
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "monthly"
     instruction_number: "DoDI 6130.03 Vol. 1"
     title: "Medical Standards for Military Service: Appointment, Enlistment, or Induction"
     source_agency: "DoD ESD WHS"
@@ -107,6 +114,7 @@ documents:
     change: 0
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "monthly"
     instruction_number: "OPNAVINST 6110.1K"
     title: "Physical Readiness Program"
     source_agency: "Navy Fitness / OPNAV"
@@ -121,6 +129,7 @@ documents:
     change: 0
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "weekly"
     instruction_number: "PRT Guide 5A"
     title: "Physical Readiness Test (PRT) Guide 5A: Standards and Tables"
     source_agency: "MyNavyHR Physical Readiness"
@@ -135,6 +144,7 @@ documents:
     change: 168
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "monthly"
     instruction_number: "MANMED Ch. 15"
     title: "Manual of the Medical Department: Chapter 15 - Physical Examinations"
     source_agency: "BUMED / Navy Medicine"
@@ -149,6 +159,7 @@ documents:
     change: 3
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "monthly"
     instruction_number: "DoDI 1145.01"
     title: "Qualifying Personnel in Military Occupations through the ASVAB"
     source_agency: "DoD ESD WHS"
@@ -163,6 +174,7 @@ documents:
     change: 0
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "monthly"
     instruction_number: "NAVPERS 18068F Vol. I"
     title: "Manual of Navy Enlisted Manpower and Personnel Classifications: Occupational Standards"
     source_agency: "MyNavyHR NEOCS"
@@ -177,6 +189,7 @@ documents:
     change: 0
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "monthly"
     instruction_number: "NAVPERS 18068F Vol. II"
     title: "Manual of Navy Enlisted Manpower and Personnel Classifications: Navy Enlisted Classifications"
     source_agency: "MyNavyHR NEOCS"
@@ -191,6 +204,7 @@ documents:
     change: 0
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "weekly"
     instruction_number: "CNRC NROTC"
     title: "Naval Reserve Officers Training Corps College Scholarship Manual"
     source_agency: "CNRC eToolbox"
@@ -205,6 +219,7 @@ documents:
     change: 0
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "monthly"
     instruction_number: "SECNAV M-5510.30"
     title: "Department of the Navy Personnel Security Program"
     source_agency: "SECNAV / NavyTribe Mirror (Temporary)"
@@ -219,6 +234,7 @@ documents:
     change: 1
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "monthly"
     instruction_number: "DoD Manual 5200.02"
     title: "Procedures for the DoD Personnel Security Program"
     source_agency: "DoD ESD WHS"
@@ -233,6 +249,7 @@ documents:
     change: 1
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "weekly"
     instruction_number: "SRB Chart FY27 CH1"
     title: "Selective Reenlistment Bonus (SRB) Award Levels & Eligibility Chart"
     source_agency: "MyNavyHR Enlisted Career Admin"
@@ -247,6 +264,7 @@ documents:
     change: 0
     is_latest: true
     last_verified: "2026-10-26"
+    sync_cadence: "monthly"
     instruction_number: "BUPERSINST 1730.11B"
     title: "Standards and Procedures Governing the Accommodation of Religious Practices in the Navy"
     source_agency: "MyNavyHR BUPERS"

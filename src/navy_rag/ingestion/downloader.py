@@ -25,6 +25,8 @@ _DEFAULT_DOD_CA_FILENAME = "dod_root_ca.pem"
 _HTTP_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
 _RETRY_STATUS_CODES = (429, 500, 502, 503, 504)
 
+SyncCadence = Literal["daily", "weekly", "monthly", "quarterly"]
+
 
 class CorpusDocument(BaseModel):
     doc_id: str
@@ -41,6 +43,7 @@ class CorpusDocument(BaseModel):
     change: int = 0
     is_latest: bool = True
     last_verified: str = "2026-10-26"
+    sync_cadence: SyncCadence = "monthly"
 
     @model_validator(mode="before")
     @classmethod
@@ -64,6 +67,8 @@ class IngestionAuditRecord(BaseModel):
     timestamp: str
     status: Literal["downloaded", "skipped", "updated", "fallback", "failed"]
     previous_sha256: str | None = None
+    etag: str | None = None
+    last_modified: str | None = None
     error: str | None = None
 
 
@@ -205,6 +210,92 @@ def _expected_hash_for_doc(
     return prior.sha256.lower() if prior else None
 
 
+def is_cadence_due(
+    last_timestamp: str | None,
+    cadence: SyncCadence,
+    *,
+    now: datetime | None = None,
+) -> bool:
+    """Return True when the document's configured sync cadence interval has elapsed."""
+    if not last_timestamp:
+        return True
+    try:
+        last_dt = datetime.fromisoformat(last_timestamp)
+        if last_dt.tzinfo is None:
+            last_dt = last_dt.replace(tzinfo=UTC)
+    except ValueError:
+        return True
+
+    current = now or datetime.now(UTC)
+    interval_days = settings.sync_cadence_days.get(cadence, 30)
+    elapsed_days = (current - last_dt).total_seconds() / 86400.0
+    return elapsed_days >= interval_days
+
+
+def _header_str(headers: Any, key: str) -> str | None:
+    if headers is None or not hasattr(headers, "get"):
+        return None
+    val = headers.get(key)
+    return val.strip() if isinstance(val, str) and val.strip() else None
+
+
+def _probe_upstream_changed(
+    session: requests.Session,
+    url: str,
+    local_path: Path,
+    prior_record: IngestionAuditRecord | None,
+    timeout_seconds: int,
+) -> tuple[bool, str | None, str | None]:
+    """Probe upstream HTTP headers via HEAD to detect policy updates without full download."""
+    req_headers: dict[str, str] = {}
+    if prior_record and prior_record.etag:
+        req_headers["If-None-Match"] = prior_record.etag
+    if prior_record and prior_record.last_modified:
+        req_headers["If-Modified-Since"] = prior_record.last_modified
+
+    try:
+        resp = session.head(
+            url,
+            headers=req_headers or None,
+            allow_redirects=True,
+            timeout=timeout_seconds,
+        )
+    except requests.RequestException as exc:
+        logger.debug("HEAD probe failed for %s (%s); falling back to GET", url, exc)
+        return True, None, None
+
+    status_code = getattr(resp, "status_code", 200)
+    if status_code == 304:
+        return (
+            False,
+            prior_record.etag if prior_record else None,
+            prior_record.last_modified if prior_record else None,
+        )
+    if isinstance(status_code, int) and status_code >= 400:
+        return True, None, None
+
+    headers = getattr(resp, "headers", None)
+    remote_etag = _header_str(headers, "ETag")
+    remote_lm = _header_str(headers, "Last-Modified")
+    raw_cl = _header_str(headers, "Content-Length")
+    remote_size = int(raw_cl) if raw_cl and raw_cl.isdigit() else None
+    local_size = local_path.stat().st_size
+
+    if remote_size is not None and remote_size != local_size:
+        return True, remote_etag, remote_lm
+
+    if prior_record and prior_record.etag and remote_etag:
+        return remote_etag != prior_record.etag, remote_etag, remote_lm
+
+    if prior_record and prior_record.last_modified and remote_lm:
+        return remote_lm != prior_record.last_modified, remote_etag, remote_lm
+
+    if remote_size is not None and remote_size == local_size:
+        return False, remote_etag, remote_lm
+
+    return True, remote_etag, remote_lm
+
+
 def _resolve_fallback(doc: CorpusDocument) -> Path | None:
     if doc.fallback_path:
         path = (
@@ -227,12 +318,15 @@ def _stream_download_to_temp(
     url: str,
     part_path: Path,
     timeout_seconds: int,
-) -> tuple[str, int]:
+) -> tuple[str, int, str | None, str | None]:
     digest = hashlib.sha256()
     bytes_written = 0
 
     with session.get(url, stream=True, timeout=timeout_seconds) as response:
         response.raise_for_status()
+        headers = getattr(response, "headers", None)
+        etag = _header_str(headers, "ETag")
+        last_modified = _header_str(headers, "Last-Modified")
         with part_path.open("wb") as out_fh:
             for chunk in response.iter_content(chunk_size=_HASH_CHUNK_BYTES):
                 if not chunk:
@@ -241,7 +335,7 @@ def _stream_download_to_temp(
                 digest.update(chunk)
                 bytes_written += len(chunk)
 
-    return digest.hexdigest(), bytes_written
+    return digest.hexdigest(), bytes_written, etag, last_modified
 
 
 def ingest_document(
@@ -253,12 +347,15 @@ def ingest_document(
     s3_bucket: str | None = None,
     s3_prefix: str = "",
     force: bool = False,
+    check_upstream: bool = False,
+    dry_run: bool = False,
     timeout_seconds: int = 60,
 ) -> IngestionAuditRecord:
     """Download a single corpus document idempotently and return its audit record."""
     raw_dir.mkdir(parents=True, exist_ok=True)
     target_path = raw_dir / doc.filename
     s3_key = f"{s3_prefix.strip('/')}/{doc.filename}".lstrip("/")
+    prior = prior_records.get(doc.doc_id)
     expected_hash = _expected_hash_for_doc(doc, prior_records)
     now_iso = datetime.now(UTC).isoformat()
 
@@ -266,22 +363,69 @@ def ingest_document(
         if target_path.is_file():
             local_hash = compute_file_sha256(target_path)
             if local_hash == expected_hash:
-                logger.info(
-                    "Skipping %s (%s): local SHA-256 matches %s",
-                    doc.doc_id,
-                    doc.filename,
-                    local_hash[:12],
-                )
-                return IngestionAuditRecord(
-                    doc_id=doc.doc_id,
+                if not check_upstream or doc.sha256:
+                    logger.info(
+                        "Skipping %s (%s): local SHA-256 matches %s",
+                        doc.doc_id,
+                        doc.filename,
+                        local_hash[:12],
+                    )
+                    return IngestionAuditRecord(
+                        doc_id=doc.doc_id,
+                        url=doc.url,
+                        filename=doc.filename,
+                        file_size=target_path.stat().st_size,
+                        sha256=local_hash,
+                        timestamp=now_iso,
+                        status="skipped",
+                        etag=prior.etag if prior else None,
+                        last_modified=prior.last_modified if prior else None,
+                    )
+
+                changed, remote_etag, remote_lm = _probe_upstream_changed(
+                    session=session,
                     url=doc.url,
-                    filename=doc.filename,
-                    file_size=target_path.stat().st_size,
-                    sha256=local_hash,
-                    timestamp=now_iso,
-                    status="skipped",
+                    local_path=target_path,
+                    prior_record=prior,
+                    timeout_seconds=timeout_seconds,
                 )
-        elif s3_bucket:
+                if not changed:
+                    logger.info(
+                        "Skipping %s (%s): upstream headers unchanged (%s)",
+                        doc.doc_id,
+                        doc.filename,
+                        local_hash[:12],
+                    )
+                    return IngestionAuditRecord(
+                        doc_id=doc.doc_id,
+                        url=doc.url,
+                        filename=doc.filename,
+                        file_size=target_path.stat().st_size,
+                        sha256=local_hash,
+                        timestamp=now_iso,
+                        status="skipped",
+                        etag=remote_etag or (prior.etag if prior else None),
+                        last_modified=remote_lm or (prior.last_modified if prior else None),
+                    )
+                if dry_run:
+                    logger.info(
+                        "[DRY-RUN] Upstream change detected for %s (%s)",
+                        doc.doc_id,
+                        doc.filename,
+                    )
+                    return IngestionAuditRecord(
+                        doc_id=doc.doc_id,
+                        url=doc.url,
+                        filename=doc.filename,
+                        file_size=target_path.stat().st_size,
+                        sha256=local_hash,
+                        timestamp=now_iso,
+                        status="updated",
+                        previous_sha256=local_hash,
+                        etag=remote_etag,
+                        last_modified=remote_lm,
+                    )
+        elif s3_bucket and not check_upstream:
             matched, s3_size = _s3_object_matches_hash(s3_bucket, s3_key, expected_hash)
             if matched and s3_size is not None:
                 logger.info(
@@ -300,9 +444,21 @@ def ingest_document(
                     status="skipped",
                 )
 
+    if dry_run:
+        return IngestionAuditRecord(
+            doc_id=doc.doc_id,
+            url=doc.url,
+            filename=doc.filename,
+            file_size=target_path.stat().st_size if target_path.is_file() else 0,
+            sha256=expected_hash or "",
+            timestamp=now_iso,
+            status="updated" if target_path.is_file() else "downloaded",
+            previous_sha256=expected_hash if target_path.is_file() else None,
+        )
+
     part_path = raw_dir / f".{doc.filename}.part"
     try:
-        downloaded_hash, byte_count = _stream_download_to_temp(
+        downloaded_hash, byte_count, resp_etag, resp_lm = _stream_download_to_temp(
             session=session,
             url=doc.url,
             part_path=part_path,
@@ -358,6 +514,8 @@ def ingest_document(
                 sha256=existing_hash,
                 timestamp=now_iso,
                 status="skipped",
+                etag=prior.etag if prior else None,
+                last_modified=prior.last_modified if prior else None,
             )
 
         logger.error("Failed to download %s from %s: %s", doc.doc_id, doc.url, exc)
@@ -400,6 +558,8 @@ def ingest_document(
                 sha256=downloaded_hash,
                 timestamp=now_iso,
                 status="skipped",
+                etag=resp_etag or (prior.etag if prior else None),
+                last_modified=resp_lm or (prior.last_modified if prior else None),
             )
 
         # Atomic rename prevents partial PDFs from being visible to downstream readers.
@@ -433,6 +593,8 @@ def ingest_document(
             timestamp=now_iso,
             status="updated",
             previous_sha256=existing_hash,
+            etag=resp_etag,
+            last_modified=resp_lm,
         )
 
     logger.info("Downloaded %s (%d bytes, sha256=%s)", doc.doc_id, byte_count, downloaded_hash[:12])
@@ -444,6 +606,8 @@ def ingest_document(
         sha256=downloaded_hash,
         timestamp=now_iso,
         status="downloaded",
+        etag=resp_etag,
+        last_modified=resp_lm,
     )
 
 
@@ -493,6 +657,8 @@ def sync_corpus(
     s3_bucket: str | None = None,
     s3_prefix: str | None = None,
     force: bool = False,
+    check_upstream: bool = False,
+    dry_run: bool = False,
 ) -> list[IngestionAuditRecord]:
     """Synchronize all documents in the corpus manifest and emit the audit log."""
     corpus = load_corpus_manifest(manifest_path)
@@ -515,16 +681,19 @@ def sync_corpus(
                 s3_bucket=bucket,
                 s3_prefix=prefix,
                 force=force,
+                check_upstream=check_upstream,
+                dry_run=dry_run,
                 timeout_seconds=settings.download_timeout_seconds,
             )
             records.append(record)
 
-    write_audit_manifest(
-        records,
-        target_audit_path,
-        s3_bucket=bucket,
-        s3_prefix=prefix,
-    )
+    if not dry_run:
+        write_audit_manifest(
+            records,
+            target_audit_path,
+            s3_bucket=bucket,
+            s3_prefix=prefix,
+        )
     return records
 
 

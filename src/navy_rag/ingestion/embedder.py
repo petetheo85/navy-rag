@@ -93,6 +93,19 @@ def _get_ingested_count(vectorstore: Chroma, filename: str) -> int:
     return len(result["ids"])
 
 
+def _get_ingested_file_sha256(vectorstore: Chroma, filename: str) -> str | None:
+    result = vectorstore._collection.get(
+        where={"filename": filename},
+        limit=1,
+        include=["metadatas"],
+    )
+    metadatas = result.get("metadatas") or []
+    if metadatas and isinstance(metadatas[0], dict):
+        sha = metadatas[0].get("file_sha256")
+        return sha if isinstance(sha, str) and sha else None
+    return None
+
+
 def _add_documents_with_retry(
     vectorstore: Chroma,
     batch: list[Document],
@@ -134,6 +147,7 @@ def embed_and_store(
     chunks: Sequence[Document],
     *,
     skip_existing: bool = True,
+    changed_filenames: set[str] | None = None,
     batch_size: int = 50,
 ) -> int:
     """
@@ -155,13 +169,23 @@ def embed_and_store(
     to_store: list[Document] = []
     for fname, file_chunks in by_file.items():
         existing_count = _get_ingested_count(vectorstore, fname)
-        if skip_existing and existing_count >= len(file_chunks):
+        incoming_sha256 = file_chunks[0].metadata.get("file_sha256") if file_chunks else None
+        existing_sha256 = (
+            _get_ingested_file_sha256(vectorstore, fname) if existing_count > 0 else None
+        )
+        force_file = changed_filenames is not None and fname in changed_filenames
+        hash_mismatch = bool(
+            incoming_sha256 and existing_sha256 and incoming_sha256 != existing_sha256
+        )
+        count_mismatch = existing_count != len(file_chunks)
+
+        if skip_existing and not force_file and not hash_mismatch and not count_mismatch:
             logger.info("Skipping already indexed file: %s (%d chunks)", fname, existing_count)
             continue
 
         if existing_count > 0:
             logger.info(
-                "File %s is partially indexed (%d/%d chunks). Re-indexing cleanly...",
+                "Replacing indexed chunks for %s (%d -> %d chunks)...",
                 fname,
                 existing_count,
                 len(file_chunks),

@@ -10,6 +10,18 @@ from pydantic import Field, computed_field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+def _resolve_default_base_dir() -> Path:
+    """Resolve project base directory with fallback for non-editable package installs."""
+    src_root = Path(__file__).resolve().parents[2]
+    if (src_root / "data" / "manifests" / "corpus_manifest.yaml").exists():
+        return src_root
+    cwd = Path.cwd().resolve()
+    for directory in (cwd, *cwd.parents):
+        if (directory / "data" / "manifests" / "corpus_manifest.yaml").exists():
+            return directory
+    return src_root
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -18,7 +30,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    base_dir: Path = Field(default_factory=lambda: Path(__file__).parents[2])
+    base_dir: Path = Field(default_factory=_resolve_default_base_dir)
 
     @computed_field
     @property

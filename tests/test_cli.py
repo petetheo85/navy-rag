@@ -52,3 +52,24 @@ def test_cli_download_all_invokes_crawlers():
         mock_milpersman.assert_called_once()
         mock_uniforms.assert_called_once()
 
+
+def test_resolve_default_base_dir_cwd_fallback(tmp_path, monkeypatch):
+    import navy_rag.config as config_mod
+
+    # Setup manifest in tmp_path mimicking repo root
+    manifest = tmp_path / "data" / "manifests" / "corpus_manifest.yaml"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text("manifest: test")
+
+    monkeypatch.chdir(tmp_path)
+
+    # Simulate running from site-packages where parents[2] has no manifest
+    fake_config_file = tmp_path / "site-packages" / "navy_rag" / "config.py"
+    fake_config_file.parent.mkdir(parents=True)
+    fake_config_file.touch()
+
+    monkeypatch.setattr(config_mod, "__file__", str(fake_config_file))
+    resolved = config_mod._resolve_default_base_dir()
+    assert resolved == tmp_path
+
+

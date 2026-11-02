@@ -9,11 +9,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
 
-import requests
 import yaml
+from curl_cffi import requests
 from pydantic import BaseModel, Field, model_validator
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 from navy_rag.config import settings
 
@@ -22,7 +20,10 @@ logger = logging.getLogger(__name__)
 # 64 KiB read buffer balances syscall overhead and memory footprint for large manuals.
 _HASH_CHUNK_BYTES = 65536
 _DEFAULT_DOD_CA_FILENAME = "dod_root_ca.pem"
-_HTTP_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+_HTTP_USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
+)
 _RETRY_STATUS_CODES = (429, 500, 502, 503, 504)
 
 SyncCadence = Literal["daily", "weekly", "monthly", "quarterly"]
@@ -144,20 +145,8 @@ def load_previous_audit_records(audit_path: Path) -> dict[str, IngestionAuditRec
 
 
 def _build_http_session(verify_tls: str | bool) -> requests.Session:
-    session = requests.Session()
-    session.verify = verify_tls
+    session = requests.Session(impersonate="safari17_0", verify=verify_tls)
     session.headers.update({"User-Agent": _HTTP_USER_AGENT})
-
-    # .mil portals behind Akamai/Cloudflare intermittently drop idle connections or throttle bursts.
-    retry_strategy = Retry(
-        total=3,
-        backoff_factor=1.0,
-        status_forcelist=_RETRY_STATUS_CODES,
-        allowed_methods=frozenset(["GET", "HEAD"]),
-    )
-    adapter = HTTPAdapter(max_retries=retry_strategy)
-    session.mount("https://", adapter)
-    session.mount("http://", adapter)
     return session
 
 
@@ -260,7 +249,7 @@ def _probe_upstream_changed(
             allow_redirects=True,
             timeout=timeout_seconds,
         )
-    except requests.RequestException as exc:
+    except requests.exceptions.RequestException as exc:
         logger.debug("HEAD probe failed for %s (%s); falling back to GET", url, exc)
         return True, None, None
 
@@ -322,7 +311,8 @@ def _stream_download_to_temp(
     digest = hashlib.sha256()
     bytes_written = 0
 
-    with session.get(url, stream=True, timeout=timeout_seconds) as response:
+    response = session.get(url, stream=True, timeout=timeout_seconds)
+    try:
         response.raise_for_status()
         headers = getattr(response, "headers", None)
         etag = _header_str(headers, "ETag")
@@ -334,6 +324,9 @@ def _stream_download_to_temp(
                 out_fh.write(chunk)
                 digest.update(chunk)
                 bytes_written += len(chunk)
+    finally:
+        if hasattr(response, "close"):
+            response.close()
 
     return digest.hexdigest(), bytes_written, etag, last_modified
 
@@ -464,7 +457,7 @@ def ingest_document(
             part_path=part_path,
             timeout_seconds=timeout_seconds,
         )
-    except requests.RequestException as exc:
+    except requests.exceptions.RequestException as exc:
         part_path.unlink(missing_ok=True)
         fallback = _resolve_fallback(doc)
         if fallback and fallback.is_file():

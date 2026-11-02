@@ -40,13 +40,17 @@ on:
         type: boolean
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   policy-sync:
     name: Differential Policy Sync & Index Verification
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      GCS_STATE_BUCKET: gs://${{ secrets.GCP_PROJECT_ID }}-state
 
     steps:
       - name: Checkout repository
@@ -58,11 +62,19 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      - name: Install CPU PyTorch and package dependencies
+      - name: Install package dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
-          pip install --no-cache-dir -e ".[dev]"
+          pip install -e ".[dev]"
+
+      - name: Authenticate to Google Cloud & Hydrate Corpus State
+        if: env.GCP_PROJECT_ID != '' && env.GCP_SA_KEY != ''
+        run: |
+          echo "$GCP_SA_KEY" > /tmp/gcp-key.json
+          gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
+          gcloud config set project "$GCP_PROJECT_ID"
+          gcloud storage rsync -r "$GCS_STATE_BUCKET/data/raw" data/raw
+          gcloud storage rsync -r "$GCS_STATE_BUCKET/chroma_db" chroma_db
 
       - name: Execute Differential Policy Sync
         id: sync
@@ -128,16 +140,15 @@ jobs:
           pytest tests/
           navy-rag eval --method hybrid
 
-      - name: Commit Updated Directives and Vector Index
-        if: steps.sync.outputs.has_changes == 'true' && github.event.inputs.dry_run != 'true'
+      - name: Persist Updated Corpus and Vector Index to GCS
+        if: >-
+          steps.sync.outputs.has_changes == 'true' &&
+          github.event.inputs.dry_run != 'true' &&
+          env.GCP_PROJECT_ID != '' &&
+          env.GCP_SA_KEY != ''
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/raw/ chroma_db/
-          if ! git diff --cached --quiet; then
-            git commit -m "chore(corpus): sync upstream policy directives"
-            git push
-          fi
+          gcloud storage rsync -r data/raw "$GCS_STATE_BUCKET/data/raw"
+          gcloud storage rsync -r chroma_db "$GCS_STATE_BUCKET/chroma_db"
 
       - name: Trigger Cloud Build Deployment on Policy Change
         if: >-
@@ -146,12 +157,10 @@ jobs:
           github.event.inputs.deploy_on_change != 'false' &&
           env.GCP_PROJECT_ID != '' &&
           env.GCP_SA_KEY != ''
-        env:
-          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
-          echo "$GCP_SA_KEY" > /tmp/gcp-key.json
-          gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
-          gcloud config set project "$GCP_PROJECT_ID"
           gcloud builds submit --config cloudbuild.yaml .
+
+      - name: Clean Up GCP Credentials
+        if: always()
+        run: |
           rm -f /tmp/gcp-key.json

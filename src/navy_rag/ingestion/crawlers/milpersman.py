@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Literal
 from urllib.parse import urljoin
 
-import requests
+from curl_cffi import requests
 from pydantic import BaseModel, Field
 
 from navy_rag.config import settings
@@ -163,7 +163,7 @@ def download_article(
                         timestamp=timestamp,
                         status="skipped",
                     )
-            except requests.RequestException:
+            except requests.exceptions.RequestException:
                 pass
 
     try:

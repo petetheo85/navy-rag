@@ -171,17 +171,24 @@ def run_policy_sync(
             from navy_rag.ingestion.crawlers.uniform_regs import crawl_uniform_regs
 
             crawlers_executed.append("uniform_regs")
-            u_manifest = crawl_uniform_regs(output_dir=uniform_dir, force=force)
-            for u_rec in u_manifest.records:
-                checked_count += 1
-                doc_key = f"uniform_regs:{u_rec.chapter_key}"
-                if u_rec.status == "compiled":
-                    updated_docs.append(doc_key)
-                    changed_filenames.add(u_rec.filename)
-                elif u_rec.status == "skipped":
-                    skipped_docs.append(doc_key)
-                elif u_rec.status == "failed":
-                    failed_docs.append(doc_key)
+            try:
+                u_manifest = crawl_uniform_regs(output_dir=uniform_dir, force=force)
+                for u_rec in u_manifest.records:
+                    checked_count += 1
+                    doc_key = f"uniform_regs:{u_rec.chapter_key}"
+                    if u_rec.status == "compiled":
+                        updated_docs.append(doc_key)
+                        changed_filenames.add(u_rec.filename)
+                    elif u_rec.status == "skipped":
+                        skipped_docs.append(doc_key)
+                    elif u_rec.status == "failed":
+                        failed_docs.append(doc_key)
+            except Exception as exc:
+                logger.warning(
+                    "Uniform Regulations crawler failed (likely upstream WAF/Akamai 403 block): %s",
+                    exc,
+                )
+                failed_docs.append("crawler:uniform_regs")
         elif not uniform_due:
             deferred_by_cadence.append("crawler:uniform_regs")
 
@@ -200,25 +207,32 @@ def run_policy_sync(
             from navy_rag.ingestion.crawlers.milpersman import DEFAULT_CATEGORIES, crawl_milpersman
 
             crawlers_executed.append("milpersman")
-            m_manifest = crawl_milpersman(
-                categories=list(DEFAULT_CATEGORIES),
-                output_dir=mil_dir,
-                force=force,
-                check_upstream=True,
-            )
-            for m_rec in m_manifest.records:
-                checked_count += 1
-                doc_key = f"milpersman:{m_rec.article_number}"
-                if m_rec.status == "downloaded":
-                    downloaded_docs.append(doc_key)
-                    changed_filenames.add(m_rec.filename)
-                elif m_rec.status == "updated":
-                    updated_docs.append(doc_key)
-                    changed_filenames.add(m_rec.filename)
-                elif m_rec.status == "skipped":
-                    skipped_docs.append(doc_key)
-                elif m_rec.status == "failed":
-                    failed_docs.append(doc_key)
+            try:
+                m_manifest = crawl_milpersman(
+                    categories=list(DEFAULT_CATEGORIES),
+                    output_dir=mil_dir,
+                    force=force,
+                    check_upstream=True,
+                )
+                for m_rec in m_manifest.records:
+                    checked_count += 1
+                    doc_key = f"milpersman:{m_rec.article_number}"
+                    if m_rec.status == "downloaded":
+                        downloaded_docs.append(doc_key)
+                        changed_filenames.add(m_rec.filename)
+                    elif m_rec.status == "updated":
+                        updated_docs.append(doc_key)
+                        changed_filenames.add(m_rec.filename)
+                    elif m_rec.status == "skipped":
+                        skipped_docs.append(doc_key)
+                    elif m_rec.status == "failed":
+                        failed_docs.append(doc_key)
+            except Exception as exc:
+                logger.warning(
+                    "MILPERSMAN crawler failed (likely upstream WAF/Akamai 403 block): %s",
+                    exc,
+                )
+                failed_docs.append("crawler:milpersman")
         elif not mil_due:
             deferred_by_cadence.append("crawler:milpersman")
 

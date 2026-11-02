@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Literal
 from urllib.parse import urljoin
 
-import requests
+from curl_cffi import requests
 from fpdf import FPDF
 from pydantic import BaseModel, Field
 from pypdf import PdfReader
